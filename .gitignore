@@ -1,1 +1,12 @@
-
+##ignore this file##
+/twitter_api_keys/
+/data/
+.vs
+/pre_processing/x64/
+/pre_processing/.vs/
+/common/x64/
+/common/.vs/
+*.sln
+*.vcxproj
+*.filters
+*.user
