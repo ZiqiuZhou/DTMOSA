@@ -28,6 +28,7 @@ class StreamListener(tweepy.StreamListener):
                 tweet_id = datajson['id']
                 created_at = datajson['created_at']
                 timestamp = datetime.strftime(datetime.strptime(created_at, '%a %b %d %H:%M:%S +0000 %Y'), '%Y-%m-%d %H:%M:%S')
+                username = datajson['user']['screen_name']
                 raw_text = datajson['text'].encode("ascii", "ignore").decode() # filter out non-ascii characters
                 text_non_url = re.sub(r"http\S+", "", raw_text)
                 context = re.split('[,.@#?!/"]',text_non_url.strip().replace("\n", "")) # filter out special characters
@@ -46,9 +47,9 @@ class StreamListener(tweepy.StreamListener):
                     lat = datajson['coordinates']['coordinates'][1]
 
                 if lat != 0:
-                    record = {"tweet_id": tweet_id, "time": timestamp, "longitude": lng, "latitude": lat, "context": context}
+                    record = {"tweet_id": tweet_id, "user_name": username, "time": timestamp, "longitude": lng, "latitude": lat, "context": context}
                     print(record)
-                    self.f.write(json.dumps(record, ensure_ascii=True, indent=4, separators=(',', ':')))
+                    self.f.write(json.dumps(record, ensure_ascii=True, indent=4, separators=(',', ':')) + '\n')
                 else:
                     pass
         else:
