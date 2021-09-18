@@ -49,7 +49,7 @@ class StreamListener(tweepy.StreamListener):
                 if lat != 0:
                     record = {"tweet_id": tweet_id, "user_name": username, "time": timestamp, "longitude": lng, "latitude": lat, "context": context}
                     print(record)
-                    self.f.write(json.dumps(record, ensure_ascii=True, indent=4, separators=(',', ':')) + '\n')
+                    self.f.write(json.dumps(record, ensure_ascii=False) + '\n')
                 else:
                     pass
         else:
