@@ -11,8 +11,7 @@ using common::file_io::FileReader;
 
 namespace common::file_io::read_lines {
 
-	class LineRange
-	{
+	class LineRange {
 	private:
 		FileReader fileReader_;
 
@@ -109,8 +108,7 @@ namespace common::file_io::read_lines {
 		}
 	};
 
-	inline LineRange linesInFile(FileReader&& fileReader)
-	{
+	inline LineRange linesInFile(FileReader&& fileReader) {
 		return { std::move(fileReader) };
 	}
 }
