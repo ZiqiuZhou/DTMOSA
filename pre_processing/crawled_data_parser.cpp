@@ -88,7 +88,7 @@ namespace PreProcessing::JsonParser {
 					auto segement = context[i].GetString();
 
 					std::unordered_multiset<std::string> word_sub_bag;
-					SplitSegment(word_sub_bag, segement, ' '); // split element into single words
+					SplitSegment(word_sub_bag, segement, ' '); // split element into single words -- tokenization
 					word_bag.insert(word_sub_bag.begin(), word_sub_bag.end());
 					word_sub_bag.clear();
 				}
