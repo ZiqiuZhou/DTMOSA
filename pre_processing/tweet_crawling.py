@@ -25,7 +25,7 @@ class StreamListener(tweepy.StreamListener):
             else:
                 # {'limit': {'track': 13, 'timestamp_ms': '1585851016736'}}
 
-                tweet_id = datajson['id']
+                tweet_id = str(datajson['id'])
                 created_at = datajson['created_at']
                 timestamp = datetime.strftime(datetime.strptime(created_at, '%a %b %d %H:%M:%S +0000 %Y'), '%Y-%m-%d %H:%M:%S')
                 username = datajson['user']['screen_name']
