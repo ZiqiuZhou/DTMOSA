@@ -10,6 +10,8 @@ namespace PreProcessing::TweetStream {
 	private:
 		std::string tweet_id;
 
+		std::string user_name;
+
 		std::string create_time;
 
 		struct Location {
@@ -20,19 +22,24 @@ namespace PreProcessing::TweetStream {
 			Location(double _longitude, double _latitude) : longitude(_longitude), latitude(_latitude) {}
 		} location;
 
-		std::unordered_set<std::string> word_bag;
+		std::unordered_multiset<std::string> word_bag;
 
 	public:
-		Tweet() {}
+		Tweet() {
+			word_bag = { };
+		}
 
 		~Tweet() {
 			tweet_id.clear();
+			user_name.clear();
 			create_time.clear();
+			word_bag.clear();
 		}
 
 		Tweet(const Tweet& tweet) {
 			this->tweet_id = tweet.tweet_id;
 			this->create_time = tweet.create_time;
+			this->user_name = tweet.user_name;
 			this->word_bag = tweet.word_bag;
 			this->location.longitude = tweet.location.longitude;
 			this->location.latitude = tweet.location.latitude;
@@ -50,6 +57,7 @@ namespace PreProcessing::TweetStream {
 
 		Tweet(Tweet&& tweet) noexcept {
 			this->tweet_id = std::move(std::exchange(tweet.tweet_id, ""));
+			this->user_name = std::move(std::exchange(tweet.user_name, ""));
 			this->create_time = std::move(std::exchange(tweet.create_time, ""));
 			this->word_bag = std::move(std::exchange(tweet.word_bag, { }));
 			this->location.longitude = std::exchange(tweet.location.longitude, 0.);
@@ -62,6 +70,7 @@ namespace PreProcessing::TweetStream {
 			}
 
 			this->tweet_id = std::move(std::exchange(tweet.tweet_id, ""));
+			this->tweet_id = std::move(std::exchange(tweet.user_name, ""));
 			this->create_time = std::move(std::exchange(tweet.create_time, ""));
 			this->word_bag = std::move(std::exchange(tweet.word_bag, { }));
 			this->location.longitude = std::exchange(tweet.location.longitude, 0.);
@@ -80,8 +89,20 @@ namespace PreProcessing::TweetStream {
 			this->tweet_id = std::move(std::exchange(tweet_id, ""));
 		}
 
-		const std::string GetTweetID() const {
+		const std::string& GetTweetID() const {
 			return this->tweet_id;
+		}
+
+		void SetUserName(const std::string& user_name) {
+			this->user_name = user_name;
+		}
+
+		void SetUserName(std::string&& user_name) {
+			this->user_name = std::move(std::exchange(user_name, ""));
+		}
+
+		const std::string& GetUserName() const {
+			return this->user_name;
 		}
 
 		void SetCreateTime(const std::string& create_time) {
@@ -92,7 +113,7 @@ namespace PreProcessing::TweetStream {
 			this->create_time = std::move(std::exchange(create_time, ""));
 		}
 
-		const std::string GetCreateTime() const {
+		const std::string& GetCreateTime() const {
 			return this->create_time;
 		}
 
@@ -112,21 +133,21 @@ namespace PreProcessing::TweetStream {
 			return this->location.latitude;
 		}
 
-		void SetWordBag(const std::unordered_set<std::string>& word_bag) {
+		void SetWordBag(const std::unordered_multiset<std::string>& word_bag) {
 			if (word_bag.empty()) {
 				return;
 			}
 			this->word_bag = word_bag;
 		}
 
-		void SetWordBag(std::unordered_set<std::string>&& word_bag) {
+		void SetWordBag(std::unordered_multiset<std::string>&& word_bag) {
 			if (word_bag.empty()) {
 				return;
 			}
 			this->word_bag = std::move(std::exchange(word_bag, { }));
 		}
 
-		std::unordered_set<std::string> GetWordBag() {
+		std::unordered_multiset<std::string>& GetWordBag() {
 			return this->word_bag;
 		}
 	};
