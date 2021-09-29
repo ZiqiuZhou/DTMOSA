@@ -7,22 +7,6 @@
 
 namespace PreProcessing::JsonParser {
 
-	void DataParser::SplitSegment(std::unordered_multiset<std::string>& word_bag, const std::string& segment, char delimiter) {
-		std::string token;
-		std::istringstream tokenStream(segment);
-		while (std::getline(tokenStream, token, delimiter)) {
-			// convert string to back to lower case
-			if (!token.empty()) {
-				std::for_each(token.begin(), token.end(), [](char& ch) {
-					ch = ::tolower(ch);
-					});
-
-				word_bag.insert(token);
-			}
-		}
-		return ;
-	}
-
 	bool DataParser::CrawledTweetParser(Tweet& tweet, std::string& json_tweet) {
 		ParseResult parse_result = document.Parse(json_tweet.c_str());
 		if (!parse_result) {
@@ -80,17 +64,12 @@ namespace PreProcessing::JsonParser {
 			return false;
 		} else {
 			const Value& context = document["context"];
-
 			auto word_bag = tweet.GetWordBag();
 			// parse each element in context 
 			for (SizeType i = 0; i < context.Size(); ++i) {
 				if (context[i].IsString() && !context[i].IsNull()) {
-					auto segement = context[i].GetString();
-
-					std::unordered_multiset<std::string> word_sub_bag;
-					SplitSegment(word_sub_bag, segement, ' '); // split element into single words -- tokenization
-					word_bag.insert(word_sub_bag.begin(), word_sub_bag.end());
-					word_sub_bag.clear();
+					auto segment = context[i].GetString();
+					word_bag.insert(std::move(segment));
 				}
 			}
 			tweet.SetWordBag(std::move(word_bag));

@@ -147,7 +147,7 @@ namespace PreProcessing::TweetStream {
 			this->word_bag = std::move(std::exchange(word_bag, { }));
 		}
 
-		std::unordered_multiset<std::string>& GetWordBag() {
+		std::unordered_multiset<std::string> GetWordBag() {
 			return this->word_bag;
 		}
 	};
