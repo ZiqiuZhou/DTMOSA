@@ -18,8 +18,6 @@ namespace PreProcessing::JsonParser {
 
 		Document document;
 
-		void SplitSegment(std::unordered_multiset<std::string>& word_bag, const std::string& segment, char delimiter);
-
 		bool CrawledTweetParser(Tweet& tweet, std::string& json_tweet);
 	};
 }
