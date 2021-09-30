@@ -1,3 +1,6 @@
+#ifndef _LineRange 
+#define _LineRange
+
 #include <span>
 #include <string_view>
 #include <string>
@@ -17,7 +20,7 @@ namespace common::file_io::read_lines {
 
 		std::string readBuf_;
 
-		std::size_t lineStart_ = 0;
+		std::size_t lineStart_ = 0; 
 		std::size_t pos_ = 0;
 		std::size_t end_ = 0;
 		bool endOfFile_ = false;
@@ -106,10 +109,9 @@ namespace common::file_io::read_lines {
 		{
 			return iterator{ };
 		}
-	};
 
-	inline LineRange linesInFile(FileReader&& fileReader) {
-		return { std::move(fileReader) };
-	}
+		LineRange linesInFile(FileReader&& fileReader);
+	};
 }
+#endif
 

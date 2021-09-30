@@ -1,5 +1,10 @@
 #include <stdexcept>      // for runtime_error
 #include <string_view>
+#include <vector>
+#include <iomanip>
+#include <sstream>
+#include <chrono>
+#include "boost/date_time/posix_time/posix_time.hpp"
 
 #include "common/file_io/lines.h"
 #include "common/config_handler/config_handler.h"
@@ -8,10 +13,12 @@
 
 using common::file_io::FileReader;
 using common::file_io::FileMode;
-using common::file_io::read_lines::linesInFile;
+using common::file_io::read_lines::LineRange;
 using common::config_handler::ConfigFileHandler;
 using PreProcessing::TweetStream::Tweet;
 using PreProcessing::JsonParser::DataParser;
+using boost::gregorian::date;
+using boost::gregorian::from_simple_string;
 
 std::vector<std::string>
 preprocess2(
@@ -19,7 +26,8 @@ preprocess2(
     std::vector<std::string> const& commentPrefixes)
 {
     std::vector<std::string> result;
-    for (std::string_view line : linesInFile(std::move(fileReader)))
+    LineRange linerange(std::move(fileReader));
+    for (std::string_view line : linerange)
     {
         if (std::none_of(commentPrefixes.begin(), commentPrefixes.end(),
             [line](std::string const& commentPrefix)
@@ -48,15 +56,16 @@ try {
     Tweet tweet;
     DataParser data_parser;
     data_parser.CrawledTweetParser(tweet, preprocessedLines[2]);
-    std::cout << tweet.GetTweetID() << std::endl;
-    std::cout << tweet.GetCreateTime() << std::endl;
-    std::cout << tweet.GetUserName() << std::endl;
-    std::cout << tweet.GetLongitude() << std::endl;
-    std::cout << tweet.GetLatitude() << std::endl;
-    auto bags = tweet.GetWordBag();
-    for (auto& word : bags) {
-        std::cout << word << " ";
-    }
+    auto time_str = tweet.GetCreateTime();
+    std::cout << time_str << std::endl;
+    auto time_str2 = "2021-09-29 08:35:44";
+    boost::posix_time::ptime d2_1 = boost::posix_time::time_from_string(time_str);
+    boost::posix_time::ptime d2_2 = boost::posix_time::time_from_string(time_str2);
+    std::cout << d2_1 << std::endl;
+    boost::posix_time::time_duration diff = d2_1 - d2_2;
+    std::cout << diff.total_seconds() << std::endl;
+    
+    
 }
 catch (std::runtime_error const& e)
 {
