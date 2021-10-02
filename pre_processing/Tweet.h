@@ -5,7 +5,14 @@
 #include <string>
 #include <unordered_set>
 
-namespace PreProcessing::TweetStream {
+#include "common/file_io/lines.h"
+#include "common/config_handler/config_handler.h"
+
+using common::file_io::FileReader;
+using common::file_io::FileMode;
+using common::config_handler::ConfigFileHandler;
+
+namespace PreProcessing::TweetParser {
 	class Tweet {
 	private:
 		std::string tweet_id;
@@ -23,6 +30,8 @@ namespace PreProcessing::TweetStream {
 		} location;
 
 		std::unordered_multiset<std::string> word_bag;
+
+		int snapshot_index = 0;
 
 	public:
 		Tweet() {
@@ -89,7 +98,7 @@ namespace PreProcessing::TweetStream {
 			this->tweet_id = std::move(std::exchange(tweet_id, ""));
 		}
 
-		const std::string& GetTweetID() const {
+		const std::string GetTweetID() const {
 			return this->tweet_id;
 		}
 
@@ -101,7 +110,7 @@ namespace PreProcessing::TweetStream {
 			this->user_name = std::move(std::exchange(user_name, ""));
 		}
 
-		const std::string& GetUserName() const {
+		const std::string GetUserName() const {
 			return this->user_name;
 		}
 
@@ -113,7 +122,7 @@ namespace PreProcessing::TweetStream {
 			this->create_time = std::move(std::exchange(create_time, ""));
 		}
 
-		const std::string& GetCreateTime() const {
+		const std::string GetCreateTime() const {
 			return this->create_time;
 		}
 
@@ -150,7 +159,15 @@ namespace PreProcessing::TweetStream {
 		std::unordered_multiset<std::string> GetWordBag() {
 			return this->word_bag;
 		}
+
+		void SetSnapShotIndex(int t) {
+			this->snapshot_index = t;
+		}
+
+		int GetSnapShotIndex() {
+			return this->snapshot_index;
+		}
 	};
-}; // end namespace PreProcessing::TweetStream
+}; // end namespace PreProcessing::TweetParser
 
 #endif // !TWEET_H
