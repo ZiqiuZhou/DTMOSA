@@ -1,14 +1,16 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
-#include <typeinfo>
 
 #include "crawled_data_parser.h"
 
 namespace PreProcessing::JsonParser {
 
 	bool DataParser::CrawledTweetParser(Tweet& tweet, std::string& json_tweet) {
+		document.SetObject();
+
 		ParseResult parse_result = document.Parse(json_tweet.c_str());
+
 		if (!parse_result) {
 			fprintf(stderr, "JSON parse error: %s (%u)",
 				GetParseError_En(parse_result.Code()), parse_result.Offset());
@@ -71,6 +73,11 @@ namespace PreProcessing::JsonParser {
 					auto segment = context[i].GetString();
 					word_bag.insert(std::move(segment));
 				}
+			}
+			if (word_bag.empty()) {
+				std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+					<< " Empty set in context." << std::endl;
+				return false;
 			}
 			tweet.SetWordBag(std::move(word_bag));
 		}

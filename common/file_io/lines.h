@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _LineRange 
 #define _LineRange
 
@@ -14,13 +15,14 @@ using common::file_io::FileReader;
 
 namespace common::file_io::read_lines {
 
-	class LineRange {
+	class LineRange
+	{
 	private:
 		FileReader fileReader_;
 
 		std::string readBuf_;
 
-		std::size_t lineStart_ = 0; 
+		std::size_t lineStart_ = 0;
 		std::size_t pos_ = 0;
 		std::size_t end_ = 0;
 		bool endOfFile_ = false;
@@ -109,9 +111,12 @@ namespace common::file_io::read_lines {
 		{
 			return iterator{ };
 		}
-
-		LineRange linesInFile(FileReader&& fileReader);
 	};
+
+	inline LineRange linesInFile(FileReader&& fileReader)
+	{
+		return { std::move(fileReader) };
+	}
 }
 #endif
 

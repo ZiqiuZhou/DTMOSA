@@ -1,11 +1,9 @@
 #include <stdexcept>      // for runtime_error
 #include <string_view>
 #include <vector>
-#include <iomanip>
-#include <sstream>
-#include <chrono>
+#include <iostream>
 #include "boost/date_time/posix_time/posix_time.hpp"
-
+#include "TweetStreamProcess.h"
 #include "common/file_io/lines.h"
 #include "common/config_handler/config_handler.h"
 #include "Tweet.h"
@@ -15,45 +13,26 @@ using common::file_io::FileReader;
 using common::file_io::FileMode;
 using common::file_io::read_lines::LineRange;
 using common::config_handler::ConfigFileHandler;
-using PreProcessing::TweetStream::Tweet;
+using PreProcessing::TweetParser::Tweet;
 using PreProcessing::JsonParser::DataParser;
 using boost::gregorian::date;
+using boost::posix_time::seconds;
 using boost::gregorian::from_simple_string;
-
-std::vector<std::string>
-preprocess2(
-    FileReader& fileReader,
-    std::vector<std::string> const& commentPrefixes)
-{
-    std::vector<std::string> result;
-    LineRange linerange(std::move(fileReader));
-    for (std::string_view line : linerange)
-    {
-        if (std::none_of(commentPrefixes.begin(), commentPrefixes.end(),
-            [line](std::string const& commentPrefix)
-            {
-                return line.starts_with(commentPrefix);
-            }))
-        {
-            result.emplace_back(std::move(std::string(line)));
-        }
-    }
-    return result;
-}
+using EventTweet::TweetStream::TweetStreamProcess;
 
 
 int main(int argc, char* argv[])
 try {
-    ConfigFileHandler* config_file_handler = ConfigFileHandler::GetInstance();
-    config_file_handler->Load("D:\\Heidelberg\\master_thesis\\GeoBurst_OSM\\config.conf");
-    auto& config_items = config_file_handler->config_items;
-    auto commentPrefixes = std::vector<std::string>{ "//", "#" };
+    ConfigFileHandler config_file_handler = *ConfigFileHandler::GetInstance();
+    config_file_handler.Load("D:\\Heidelberg\\master_thesis\\GeoBurst_OSM\\config.conf");
+    auto& config_items = config_file_handler.config_items;
     auto filename = config_items["crawled_data"];
-    auto preprocessedLines = preprocess2(
-        *FileReader::open(filename, FileMode::text),
-        commentPrefixes);
 
-    Tweet tweet;
+    TweetStreamProcess process(config_file_handler);
+    process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
+
+
+   /* Tweet tweet;
     DataParser data_parser;
     data_parser.CrawledTweetParser(tweet, preprocessedLines[2]);
     auto time_str = tweet.GetCreateTime();
@@ -64,6 +43,7 @@ try {
     std::cout << d2_1 << std::endl;
     boost::posix_time::time_duration diff = d2_1 - d2_2;
     std::cout << diff.total_seconds() << std::endl;
+    std::cout << d2_1 + seconds(3600) << std::endl;*/
     
     
 }

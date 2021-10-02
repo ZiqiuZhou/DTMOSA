@@ -73,8 +73,4 @@ namespace common::file_io::read_lines {
         }
         return false;
     }
-
-    LineRange LineRange::linesInFile(FileReader&& fileReader) {
-        return { std::move(fileReader) };
-    }
 } // namespace arithmetic_expression_::read_lines

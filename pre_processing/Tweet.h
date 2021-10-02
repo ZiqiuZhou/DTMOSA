@@ -4,7 +4,6 @@
 
 #include <string>
 #include <unordered_set>
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "common/file_io/lines.h"
 #include "common/config_handler/config_handler.h"
@@ -12,13 +11,8 @@
 using common::file_io::FileReader;
 using common::file_io::FileMode;
 using common::config_handler::ConfigFileHandler;
-using boost::posix_time::ptime;
-using boost::posix_time::time_duration;
-using boost::gregorian::date;
-using boost::posix_time::time_from_string;
-using boost::posix_time::time_duration;
 
-namespace PreProcessing::TweetStream {
+namespace PreProcessing::TweetParser {
 	class Tweet {
 	private:
 		std::string tweet_id;
@@ -174,20 +168,6 @@ namespace PreProcessing::TweetStream {
 			return this->snapshot_index;
 		}
 	};
-
-	class TweetStreamProcess {
-	public:
-		int current_snapshot_index = 0;
-		int time_interval; // time interval in seconds
-		ptime start_time;
-
-	public:
-		TweetStreamProcess(int _time_interval, std::string& _start_time) : time_interval(_time_interval) {
-			this->start_time = time_from_string(_start_time);
-		}
-
-		time_duration::sec_type ToTimeDuration(std::string& time_str_format);
-	};
-}; // end namespace PreProcessing::TweetStream
+}; // end namespace PreProcessing::TweetParser
 
 #endif // !TWEET_H

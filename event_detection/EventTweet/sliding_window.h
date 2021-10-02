@@ -1,79 +1,46 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <memory>
+#include <unordered_map>
 #include <unordered_set>
 #include <deque>
 
 #include "pre_processing/Tweet.h"
 
-using PreProcessing::TweetStream::Tweet;
+using PreProcessing::TweetParser::Tweet;
 
 namespace EventTweet::SlidingWindow {
 
-	class WordTweetPair {
-	private:
-		std::string word;
-		std::unique_ptr<std::unordered_set<std::string> > tweet_set_ptr;
-
-	public:
-		WordTweetPair() {}
-
-		WordTweetPair(const std::string& _word) : word(_word) {
-			tweet_set_ptr.reset();
-		}
-
-		WordTweetPair(std::string&& _word) : word(std::move(_word)) {
-			tweet_set_ptr.reset();
-		}
-
-		~WordTweetPair() {
-			word.clear();
-			tweet_set_ptr.release();
-		}
-
-		WordTweetPair(WordTweetPair&& word_tweet_pair) noexcept {
-			this->word = std::move(std::exchange(word_tweet_pair.word, ""));
-			this->tweet_set_ptr = std::move(std::exchange(word_tweet_pair.tweet_set_ptr, nullptr));
-		}
-
-		WordTweetPair& operator= (WordTweetPair&& word_tweet_pair) noexcept {
-			if (this == &word_tweet_pair) {
-				return *this;
-			}
-
-			this->word = std::move(std::exchange(word_tweet_pair.word, ""));
-			this->tweet_set_ptr = std::move(std::exchange(word_tweet_pair.tweet_set_ptr, nullptr));
-
-			return *this;
-		}
-
-	public:
-
-	};
+	using WordTweetPair = std::unordered_map<std::string, std::unordered_set<std::string> >;
 
 	class SnapShot {
 	private:
 		int t; // snapshot index
-		std::unique_ptr<std::unordered_set<WordTweetPair> > word_set_ptr;
+		std::unique_ptr<WordTweetPair> word_pair_ptr;
 
 	public:
 		SnapShot() {
 			t = 0;
-			word_set_ptr.reset();
+			word_pair_ptr.reset();
+			word_pair_ptr = std::make_unique<WordTweetPair>();
 		}
 
 		SnapShot(int _t) : t(_t) {
-			word_set_ptr.reset();
+			word_pair_ptr.reset();
+			word_pair_ptr = std::make_unique<WordTweetPair>();
 		};
 
 		~SnapShot() {
-			word_set_ptr.release();
+			word_pair_ptr.reset();
 		}
+
+		SnapShot(const SnapShot& snapshot) = delete;
+
+		SnapShot& operator= (const SnapShot& snapshot) = delete;
 
 		SnapShot(SnapShot&& snapshot) noexcept {
 			this->t = snapshot.t;
-			this->word_set_ptr = std::move(std::exchange(snapshot.word_set_ptr, nullptr));
+			this->word_pair_ptr = std::move(std::exchange(snapshot.word_pair_ptr, nullptr));
 		}
 
 		SnapShot& operator= (SnapShot&& snapshot) noexcept {
@@ -82,31 +49,62 @@ namespace EventTweet::SlidingWindow {
 			}
 
 			this->t = snapshot.t;
-			this->word_set_ptr = std::move(std::exchange(snapshot.word_set_ptr, nullptr));
+			this->word_pair_ptr = std::move(std::exchange(snapshot.word_pair_ptr, nullptr));
 
 			return *this;
 		}
 
 	public:
+		void Reset() {
+			word_pair_ptr.reset();
+			word_pair_ptr = std::make_unique<WordTweetPair>();
+			return ;
+		}
 
+		void SetIndex(int index) {
+			this->t = index;
+			return ;
+		}
+
+		int GetIndex() {
+			return this->t;
+		}
+
+		WordTweetPair& GetWordTweetPair() {
+			return *(this->word_pair_ptr);
+		}
+
+		void GenerateWordTweetPair(Tweet& tweet);
 	};
 
-	class SlidingWindow {
+	class Window {
 	private:
-		const int WINDOW_SIZE;
+		const int window_size;
 		std::deque<SnapShot> sliding_window;
 
 	public:
-		SlidingWindow(const int size) : WINDOW_SIZE(size) { }
+		Window(const int size) : window_size(size) {
+			sliding_window.clear();
+		}
 
-		~SlidingWindow() {
+		~Window() {
 			sliding_window.clear();
 		}
 
 	public:
-		void Slide(SnapShot&& snapshot);
+		int GetCurrentSize() {
+			return sliding_window.size();
+		}
 
-		void GenerateWordTweetPair(std::vector<Tweet>& tweet_stream);
+		const int GetWindowSize() const{
+			return window_size;
+		}
+
+		SnapShot& GetFront();
+
+		SnapShot& GetBack();
+
+		void Slide(SnapShot&& snapshot);
 	};
 }
 
