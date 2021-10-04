@@ -13,12 +13,14 @@ namespace EventTweet::SlidingWindow {
 
 	using WordTweetPair = std::unordered_map<std::string, std::unordered_set<std::string> >;
 	using BurstyWords = std::unordered_set<std::string>;
+	using NameTweetMap = std::unordered_map<std::string, std::string>;
 
 	class SnapShot {
 	private:
 		int t; // snapshot index
 		std::unique_ptr<WordTweetPair> word_pair_ptr;
 		std::unique_ptr<BurstyWords> bursty_words_ptr;
+		std::unique_ptr<NameTweetMap> name_tweet_map_ptr;
 
 	public:
 		SnapShot() {
@@ -27,6 +29,8 @@ namespace EventTweet::SlidingWindow {
 			word_pair_ptr = std::make_unique<WordTweetPair>();
 			bursty_words_ptr.reset();
 			bursty_words_ptr = std::make_unique<BurstyWords>();
+			name_tweet_map_ptr.reset();
+			name_tweet_map_ptr = std::make_unique<NameTweetMap>();
 		}
 
 		SnapShot(int _t) : t(_t) {
@@ -34,11 +38,14 @@ namespace EventTweet::SlidingWindow {
 			word_pair_ptr = std::make_unique<WordTweetPair>();
 			bursty_words_ptr.reset();
 			bursty_words_ptr = std::make_unique<BurstyWords>();
+			name_tweet_map_ptr.reset();
+			name_tweet_map_ptr = std::make_unique<NameTweetMap>();
 		};
 
 		~SnapShot() {
 			word_pair_ptr.reset();
 			bursty_words_ptr.reset();
+			name_tweet_map_ptr.reset();
 		}
 
 		SnapShot(const SnapShot& snapshot) = delete;
@@ -49,6 +56,7 @@ namespace EventTweet::SlidingWindow {
 			this->t = snapshot.t;
 			this->word_pair_ptr = std::move(std::exchange(snapshot.word_pair_ptr, nullptr));
 			this->bursty_words_ptr = std::move(std::exchange(snapshot.bursty_words_ptr, nullptr));
+			this->name_tweet_map_ptr = std::move(std::exchange(snapshot.name_tweet_map_ptr, nullptr));
 		}
 
 		SnapShot& operator= (SnapShot&& snapshot) noexcept {
@@ -59,6 +67,7 @@ namespace EventTweet::SlidingWindow {
 			this->t = snapshot.t;
 			this->word_pair_ptr = std::move(std::exchange(snapshot.word_pair_ptr, nullptr));
 			this->bursty_words_ptr = std::move(std::exchange(snapshot.bursty_words_ptr, nullptr));
+			this->name_tweet_map_ptr = std::move(std::exchange(snapshot.name_tweet_map_ptr, nullptr));
 
 			return *this;
 		}
@@ -69,6 +78,9 @@ namespace EventTweet::SlidingWindow {
 			word_pair_ptr = std::make_unique<WordTweetPair>();
 			bursty_words_ptr.reset();
 			bursty_words_ptr = std::make_unique<BurstyWords>();
+			name_tweet_map_ptr.reset();
+			name_tweet_map_ptr = std::make_unique<NameTweetMap>();
+
 			return ;
 		}
 
@@ -87,9 +99,15 @@ namespace EventTweet::SlidingWindow {
 
 		void GenerateWordTweetPair(Tweet& tweet);
 
+		void GenerateUserTweetMap(Tweet& tweet);
+
 		void SetBurstyWords(BurstyWords&& bursty_word_set);
 
 		BurstyWords& GetBurstyWords();
+
+		NameTweetMap& GetNameTweetMap();
+
+		bool HasDuplicateUser(Tweet& tweet);
 	};
 
 	class Window {

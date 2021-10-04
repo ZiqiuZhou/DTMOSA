@@ -29,23 +29,13 @@ try {
     auto filename = config_items["crawled_data"];
 
     TweetStreamProcess process(config_file_handler);
-    process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
-
-
-   /* Tweet tweet;
-    DataParser data_parser;
-    data_parser.CrawledTweetParser(tweet, preprocessedLines[2]);
-    auto time_str = tweet.GetCreateTime();
-    std::cout << time_str << std::endl;
-    auto time_str2 = "2021-09-29 08:35:44";
-    boost::posix_time::ptime d2_1 = boost::posix_time::time_from_string(time_str);
-    boost::posix_time::ptime d2_2 = boost::posix_time::time_from_string(time_str2);
-    std::cout << d2_1 << std::endl;
-    boost::posix_time::time_duration diff = d2_1 - d2_2;
-    std::cout << diff.total_seconds() << std::endl;
-    std::cout << d2_1 + seconds(3600) << std::endl;*/
+    //process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
     
-    
+    std::vector<double> cor = {};
+    cor = config_file_handler.GetValue("space_NY", cor);
+    for (auto a : cor) {
+        std::cout << a << " ";
+    }
 }
 catch (std::runtime_error const& e)
 {
