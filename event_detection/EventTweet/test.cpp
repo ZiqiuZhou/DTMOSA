@@ -3,7 +3,7 @@
 #include <vector>
 #include <iostream>
 #include "boost/date_time/posix_time/posix_time.hpp"
-#include "TweetStreamProcess.h"
+#include "tweet_stream_process.h"
 #include "common/file_io/lines.h"
 #include "common/config_handler/config_handler.h"
 #include "Tweet.h"

@@ -17,11 +17,21 @@ namespace EventTweet::SlidingWindow {
 		return ;
 	}
 
-	SnapShot& Window::GetFront() {
+	void SnapShot::SetBurstyWords(BurstyWords&& bursty_word_set) {
+		bursty_words_ptr.reset();
+		bursty_words_ptr = std::make_unique<BurstyWords>(std::move(bursty_word_set));
+		return;
+	}
+
+	BurstyWords& SnapShot::GetBurstyWords() {
+		return *bursty_words_ptr;
+	}
+
+	SnapShot& Window::GetOldest() {
 		return sliding_window.front();
 	}
 
-	SnapShot& Window::GetBack() {
+	SnapShot& Window::GetLatest() {
 		return sliding_window.back();
 	}
 

@@ -2,7 +2,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include "TweetStreamProcess.h"
+#include "tweet_stream_process.h"
 
 namespace EventTweet::TweetStream {
 	TweetStreamProcess::TweetStreamProcess(ConfigFileHandler& config_file_handler) {
@@ -20,18 +20,18 @@ namespace EventTweet::TweetStream {
 	bool TweetStreamProcess::StreamProcess(FileReader& fileReader, ConfigFileHandler& config_file_handler) {
 		DataParser json_parser;
 
+		HistorySequenceSet history_sequence_set(config_file_handler.GetValue("sequence_length", 200));
 		Window sliding_window(config_file_handler.GetValue("window_size", 1));
-		int window_size = sliding_window.GetWindowSize();
 		SnapShot snapshot(current_snapshot_index);
 
+		int const window_size = sliding_window.GetWindowSize();
+		int const history_length = history_sequence_set.GetHistoryLength();
 		// iterate all tweets
         for (std::string_view line : linesInFile(std::move(fileReader))) {
 			std::string json_tweet = std::string(line);
 
 			Tweet tweet;
 			if (!json_parser.CrawledTweetParser(tweet, json_tweet)) {
-				std::cout << "file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
-					<< " Invalid parser." << std::endl;
 				continue;
 			}
 			json_tweet.clear();
@@ -39,25 +39,38 @@ namespace EventTweet::TweetStream {
 			std::string timestamp = tweet.GetCreateTime();
 			auto duration = ToTimeDuration(std::move(timestamp));
 			if (time_interval - duration <= 0) { 
+				// construct history usage
+				if (snapshot.GetIndex() < history_length) {
+					history_sequence_set.ManipulateWordHistory(snapshot);
+				}
+
+				// get bursty words set at snapshot t
+				if (snapshot.GetIndex() >= history_length) {
+					BurstyWords bursty_word_set;
+					history_sequence_set.Burst(snapshot, bursty_word_set);
+					snapshot.SetBurstyWords(std::move(bursty_word_set));
+				}
 				sliding_window.Slide(std::move(snapshot)); // trigger sliding window to slide
 				snapshot.Reset();
 
 				// switch to next snapshot
 				current_snapshot_index++;
 				snapshot.SetIndex(current_snapshot_index);
-				start_time += seconds(time_interval);
+				int step = duration / time_interval;
+				start_time += seconds(step * time_interval);
 			} 
 
 			tweet.SetSnapShotIndex(current_snapshot_index);
 			snapshot.GenerateWordTweetPair(tweet);
         }
 
-		auto& current_snapshot = sliding_window.GetBack();
-		auto& first_snapshot = sliding_window.GetFront();
-		std::cout << current_snapshot.GetIndex() << std::endl;
-		std::cout << first_snapshot.GetIndex() << std::endl;
-		std::cout << current_snapshot.GetWordTweetPair().size() << std::endl;
-		std::cout << first_snapshot.GetWordTweetPair().size() << std::endl;
+		SnapShot& curr_snapshot = sliding_window.GetOldest();
+		std::cout << sliding_window.GetCurrentSize() << std::endl;
+		auto& set = curr_snapshot.GetBurstyWords();
+		std::cout << "bursty words size: " << set.size() << std::endl;
+		for (auto ele : set) {
+			std::cout << ele << std::endl;
+		}
 		return true;
 	}
 }
