@@ -8,6 +8,7 @@
 #include "pre_processing/Tweet.h"
 #include "pre_processing/crawled_data_parser.h"
 #include "sliding_window.h"
+#include "keyword_extraction.h"
 
 using PreProcessing::TweetParser::Tweet;
 using PreProcessing::JsonParser::DataParser;
@@ -21,8 +22,11 @@ using common::file_io::FileMode;
 using common::file_io::read_lines::linesInFile;
 using common::config_handler::ConfigFileHandler;
 using EventTweet::SlidingWindow::WordTweetPair;
+using EventTweet::SlidingWindow::BurstyWords;
 using EventTweet::SlidingWindow::SnapShot;
 using EventTweet::SlidingWindow::Window;
+using EventTweet::KeywordExtraction::HistorySequenceSet;
+using EventTweet::KeywordExtraction::WordUsageBaseline;
 
 namespace EventTweet::TweetStream {
 
@@ -40,5 +44,3 @@ namespace EventTweet::TweetStream {
 		bool StreamProcess(FileReader& fileReader, ConfigFileHandler& config_file_handler);
 	};
 }
-
-

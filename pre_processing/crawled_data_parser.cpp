@@ -75,8 +75,6 @@ namespace PreProcessing::JsonParser {
 				}
 			}
 			if (word_bag.empty()) {
-				std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
-					<< " Empty set in context." << std::endl;
 				return false;
 			}
 			tweet.SetWordBag(std::move(word_bag));

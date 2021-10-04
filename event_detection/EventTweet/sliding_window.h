@@ -12,26 +12,33 @@ using PreProcessing::TweetParser::Tweet;
 namespace EventTweet::SlidingWindow {
 
 	using WordTweetPair = std::unordered_map<std::string, std::unordered_set<std::string> >;
+	using BurstyWords = std::unordered_set<std::string>;
 
 	class SnapShot {
 	private:
 		int t; // snapshot index
 		std::unique_ptr<WordTweetPair> word_pair_ptr;
+		std::unique_ptr<BurstyWords> bursty_words_ptr;
 
 	public:
 		SnapShot() {
 			t = 0;
 			word_pair_ptr.reset();
 			word_pair_ptr = std::make_unique<WordTweetPair>();
+			bursty_words_ptr.reset();
+			bursty_words_ptr = std::make_unique<BurstyWords>();
 		}
 
 		SnapShot(int _t) : t(_t) {
 			word_pair_ptr.reset();
 			word_pair_ptr = std::make_unique<WordTweetPair>();
+			bursty_words_ptr.reset();
+			bursty_words_ptr = std::make_unique<BurstyWords>();
 		};
 
 		~SnapShot() {
 			word_pair_ptr.reset();
+			bursty_words_ptr.reset();
 		}
 
 		SnapShot(const SnapShot& snapshot) = delete;
@@ -41,6 +48,7 @@ namespace EventTweet::SlidingWindow {
 		SnapShot(SnapShot&& snapshot) noexcept {
 			this->t = snapshot.t;
 			this->word_pair_ptr = std::move(std::exchange(snapshot.word_pair_ptr, nullptr));
+			this->bursty_words_ptr = std::move(std::exchange(snapshot.bursty_words_ptr, nullptr));
 		}
 
 		SnapShot& operator= (SnapShot&& snapshot) noexcept {
@@ -50,6 +58,7 @@ namespace EventTweet::SlidingWindow {
 
 			this->t = snapshot.t;
 			this->word_pair_ptr = std::move(std::exchange(snapshot.word_pair_ptr, nullptr));
+			this->bursty_words_ptr = std::move(std::exchange(snapshot.bursty_words_ptr, nullptr));
 
 			return *this;
 		}
@@ -58,6 +67,8 @@ namespace EventTweet::SlidingWindow {
 		void Reset() {
 			word_pair_ptr.reset();
 			word_pair_ptr = std::make_unique<WordTweetPair>();
+			bursty_words_ptr.reset();
+			bursty_words_ptr = std::make_unique<BurstyWords>();
 			return ;
 		}
 
@@ -75,6 +86,10 @@ namespace EventTweet::SlidingWindow {
 		}
 
 		void GenerateWordTweetPair(Tweet& tweet);
+
+		void SetBurstyWords(BurstyWords&& bursty_word_set);
+
+		BurstyWords& GetBurstyWords();
 	};
 
 	class Window {
@@ -100,9 +115,9 @@ namespace EventTweet::SlidingWindow {
 			return window_size;
 		}
 
-		SnapShot& GetFront();
+		SnapShot& GetOldest();
 
-		SnapShot& GetBack();
+		SnapShot& GetLatest();
 
 		void Slide(SnapShot&& snapshot);
 	};
