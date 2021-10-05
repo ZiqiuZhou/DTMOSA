@@ -35,9 +35,10 @@ namespace EventTweet::TweetStream {
 				continue;
 			}
 			json_tweet.clear();
-			// measure tweet created time
+
 			std::string timestamp = tweet.GetCreateTime();
 			auto duration = ToTimeDuration(std::move(timestamp));
+			// process the entire snapshot
 			if (time_interval - duration <= 0) { 
 				// construct history usage
 				if (snapshot.GetIndex() < history_length) {
@@ -50,7 +51,9 @@ namespace EventTweet::TweetStream {
 					history_sequence_set.Burst(snapshot, bursty_word_set);
 					snapshot.SetBurstyWords(std::move(bursty_word_set));
 				}
-				sliding_window.Slide(std::move(snapshot)); // trigger sliding window to slide
+
+				// trigger sliding window to slide
+				sliding_window.Slide(std::move(snapshot)); 
 				snapshot.Reset();
 
 				// switch to next snapshot
@@ -61,16 +64,10 @@ namespace EventTweet::TweetStream {
 			} 
 
 			tweet.SetSnapShotIndex(current_snapshot_index);
+			snapshot.GenerateUserTweetMap(tweet);
 			snapshot.GenerateWordTweetPair(tweet);
         }
 
-		SnapShot& curr_snapshot = sliding_window.GetOldest();
-		std::cout << sliding_window.GetCurrentSize() << std::endl;
-		auto& set = curr_snapshot.GetBurstyWords();
-		std::cout << "bursty words size: " << set.size() << std::endl;
-		for (auto ele : set) {
-			std::cout << ele << std::endl;
-		}
 		return true;
 	}
 }

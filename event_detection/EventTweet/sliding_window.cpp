@@ -13,18 +13,45 @@ namespace EventTweet::SlidingWindow {
 				}
 				word_tweet_map[word].insert(tweet.GetTweetID());
 			}
-		}
+		} 
 		return ;
+	}
+
+	void SnapShot::GenerateUserTweetMap(Tweet& tweet) {
+		auto& name_tweet_map = GetNameTweetMap();
+		std::string name = tweet.GetUserName();
+		std::string id = tweet.GetTweetID();
+
+		if (!HasDuplicateUser(tweet)) {
+			name_tweet_map[name] = id;
+		} else {
+			tweet.SetTweetID(id);
+		}
+
+		return;
 	}
 
 	void SnapShot::SetBurstyWords(BurstyWords&& bursty_word_set) {
 		bursty_words_ptr.reset();
 		bursty_words_ptr = std::make_unique<BurstyWords>(std::move(bursty_word_set));
-		return;
+		return ;
 	}
 
 	BurstyWords& SnapShot::GetBurstyWords() {
 		return *bursty_words_ptr;
+	}
+
+	NameTweetMap& SnapShot::GetNameTweetMap() {
+		return *name_tweet_map_ptr;
+	}
+
+	bool SnapShot::HasDuplicateUser(Tweet& tweet) {
+		auto& name_tweet_map = GetNameTweetMap();
+		std::string user_name = tweet.GetUserName();
+		if (!name_tweet_map.empty() && name_tweet_map.find(user_name) != name_tweet_map.end()) {
+			return true;
+		}
+		return false;
 	}
 
 	SnapShot& Window::GetOldest() {
