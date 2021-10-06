@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <unordered_map>
 #include <string>
 #include <filesystem>
@@ -74,6 +75,8 @@ namespace common::config_handler {
 		const int GetValue(const std::string& config_name, const int default_value);
 
 		const double GetValue(const std::string& config_name, const double default_value);
+
+		std::vector<double>& GetValue(const std::string& config_name, std::vector<double>& value);
 
 	public:
 		static std::unordered_map<std::string, std::string> config_items;

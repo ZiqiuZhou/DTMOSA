@@ -52,10 +52,9 @@ namespace common::config_handler {
 	}
 
 	bool ConfigFileHandler::FileReader::readFile(char* linebuf) {
-		//检查文件是否结束 ，没有结束则条件成立
 
 		while (!std::feof(file_.get())) {
-			if (fgets(linebuf, 500, file_.get()) == nullptr) { //从文件中读数据，每次读一行，一行最多不要超过500个字符
+			if (fgets(linebuf, 500, file_.get()) == nullptr) {
 				continue;
 			}
 			else if (linebuf[0] == 0) {
@@ -66,7 +65,6 @@ namespace common::config_handler {
 			}
 
 		lblprocstring:
-			//后边若有换行，回车，空格等都截取掉
 			if (strlen(linebuf) > 0)
 			{
 				int length = strlen(linebuf) - 1;
@@ -79,7 +77,7 @@ namespace common::config_handler {
 			if (linebuf[0] == 0) {
 				continue;
 			}
-			if (linebuf[0] == '[') { //[开头的也不处理
+			if (linebuf[0] == '[') {
 				continue;
 			}
 			std::string line = linebuf;
@@ -91,7 +89,6 @@ namespace common::config_handler {
 				std::string config_content(line.size() - pos - 1, '\0');
 				std::copy(line.begin() + pos + 1, line.end(), config_content.begin());
 
-				// 截取字符串空格, included in ngx_string.cxx
 				Trim(config_name);
 				Trim(config_content);
 
@@ -135,6 +132,31 @@ namespace common::config_handler {
 			return std::stod(config_items[config_name]);
 		}
 		return default_value;
+	}
+
+	std::vector<double>& ConfigFileHandler::GetValue(const std::string& config_name, 
+		std::vector<double>& value) {
+		auto config_pos = config_items.find(config_name);
+		if (config_pos != config_items.end() && (*config_pos).second != "") {
+			auto& list = (*config_pos).second;
+			auto iter = list.begin();
+			std::string candidate;
+			while (iter != list.end()) {
+				if (*iter == '[' || *iter == ']' || *iter == ',' || *iter == ' ') {
+					if (iter != list.end()) {
+						++iter;
+					}
+					continue;
+				}
+				while (*iter != ',' && *iter != ']') {
+					candidate.push_back(*iter);
+					++iter;
+				}
+				value.push_back(std::stod(std::move(candidate)));
+				candidate.clear();
+			}
+		}
+		return value;
 	}
 }
 
