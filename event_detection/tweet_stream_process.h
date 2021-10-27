@@ -3,12 +3,12 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <string>
 
-#include "common/file_io/lines.h"
-#include "common/config_handler/config_handler.h"
-#include "pre_processing/Tweet.h"
-#include "pre_processing/crawled_data_parser.h"
-#include "sliding_window.h"
-#include "keyword_extraction.h"
+#include "../common/file_io/lines.h"
+#include "../common/config_handler/config_handler.h"
+#include "../pre_processing/Tweet.h"
+#include "../pre_processing/crawled_data_parser.h"
+#include "sliding_window/sliding_window.h"
+#include "keyword_extraction/keyword_extraction.h"
 
 using PreProcessing::TweetParser::Tweet;
 using PreProcessing::JsonParser::DataParser;

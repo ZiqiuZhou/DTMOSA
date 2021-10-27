@@ -1,6 +1,4 @@
-#include <vector>
 #include <unordered_set>
-#include <unordered_map>
 
 #include "tweet_stream_process.h"
 
@@ -12,7 +10,7 @@ namespace EventTweet::TweetStream {
 	}
 
 	time_duration::sec_type TweetStreamProcess::ToTimeDuration(std::string&& time_str_format) {
-		ptime current_time = time_from_string(std::move(time_str_format));
+		ptime current_time = time_from_string(time_str_format);
 		time_duration duration = current_time - start_time;
 		return duration.total_seconds();
 	}

@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include <cstring>
 #include <filesystem>
 
 namespace common::config_handler {
@@ -18,11 +19,9 @@ namespace common::config_handler {
 	public:
 		static ConfigFileHandler* GetInstance() {
 			if (m_instance == nullptr) {
-				//锁（本来该加锁，但在主线程中率先执行了GetInstance函数，这样就不存在多线程调用该函数导致的需要互斥的问题，因此这里就没有实际加锁）
 				if (m_instance == nullptr) {
 					m_instance = new ConfigFileHandler();
 				}
-				//放锁
 			}
 			return m_instance;
 		}
@@ -76,7 +75,7 @@ namespace common::config_handler {
 
 		const double GetValue(const std::string& config_name, const double default_value);
 
-		std::vector<double>& GetValue(const std::string& config_name, std::vector<double>& value);
+		std::vector<double> GetVector(const std::string& config_name);
 
 	public:
 		static std::unordered_map<std::string, std::string> config_items;

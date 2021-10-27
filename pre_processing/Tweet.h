@@ -5,29 +5,33 @@
 #include <string>
 #include <unordered_set>
 
-#include "common/file_io/lines.h"
-#include "common/config_handler/config_handler.h"
+#include "../common/file_io/lines.h"
+#include "../common/config_handler/config_handler.h"
 
 using common::file_io::FileReader;
 using common::file_io::FileMode;
 using common::config_handler::ConfigFileHandler;
 
 namespace PreProcessing::TweetParser {
+    const double INVALID_NUM = 0.;
+
 	class Tweet {
 	private:
 		std::string tweet_id;
 
-		std::string user_name;
+		std::string user_id;
 
 		std::string create_time;
 
 		struct Location {
-			double longitude = 0.;
-			double latitude = 0.;
+			double longitude = INVALID_NUM;
+			double latitude = INVALID_NUM;
 
 			Location() {}
 			Location(double _longitude, double _latitude) : longitude(_longitude), latitude(_latitude) {}
 		} location;
+
+        std::string context;
 
 		std::unordered_multiset<std::string> word_bag;
 
@@ -40,15 +44,17 @@ namespace PreProcessing::TweetParser {
 
 		~Tweet() {
 			tweet_id.clear();
-			user_name.clear();
+            user_id.clear();
 			create_time.clear();
+            context.clear();
 			word_bag.clear();
 		}
 
 		Tweet(const Tweet& tweet) {
 			this->tweet_id = tweet.tweet_id;
 			this->create_time = tweet.create_time;
-			this->user_name = tweet.user_name;
+			this->user_id = tweet.user_id;
+            this->context = tweet.context;
 			this->word_bag = tweet.word_bag;
 			this->location.longitude = tweet.location.longitude;
 			this->location.latitude = tweet.location.latitude;
@@ -66,8 +72,9 @@ namespace PreProcessing::TweetParser {
 
 		Tweet(Tweet&& tweet) noexcept {
 			this->tweet_id = std::move(std::exchange(tweet.tweet_id, ""));
-			this->user_name = std::move(std::exchange(tweet.user_name, ""));
+			this->user_id = std::move(std::exchange(tweet.user_id, ""));
 			this->create_time = std::move(std::exchange(tweet.create_time, ""));
+            this->context = std::move(std::exchange(tweet.context, ""));
 			this->word_bag = std::move(std::exchange(tweet.word_bag, { }));
 			this->location.longitude = std::exchange(tweet.location.longitude, 0.);
 			this->location.latitude = std::exchange(tweet.location.latitude, 0.);
@@ -79,8 +86,9 @@ namespace PreProcessing::TweetParser {
 			}
 
 			this->tweet_id = std::move(std::exchange(tweet.tweet_id, ""));
-			this->tweet_id = std::move(std::exchange(tweet.user_name, ""));
+			this->tweet_id = std::move(std::exchange(tweet.user_id, ""));
 			this->create_time = std::move(std::exchange(tweet.create_time, ""));
+            this->context = std::move(std::exchange(tweet.context, ""));
 			this->word_bag = std::move(std::exchange(tweet.word_bag, { }));
 			this->location.longitude = std::exchange(tweet.location.longitude, 0.);
 			this->location.latitude = std::exchange(tweet.location.latitude, 0.);
@@ -102,16 +110,16 @@ namespace PreProcessing::TweetParser {
 			return this->tweet_id;
 		}
 
-		void SetUserName(const std::string& user_name) {
-			this->user_name = user_name;
+		void SetUserID(const std::string& user_id) {
+			this->user_id = user_id;
 		}
 
-		void SetUserName(std::string&& user_name) {
-			this->user_name = std::move(std::exchange(user_name, ""));
+		void SetUserID(std::string&& user_id) {
+			this->user_id = std::move(std::exchange(user_id, ""));
 		}
 
-		const std::string GetUserName() const {
-			return this->user_name;
+		const std::string GetUserID() const {
+			return this->user_id;
 		}
 
 		void SetCreateTime(const std::string& create_time) {
@@ -142,6 +150,46 @@ namespace PreProcessing::TweetParser {
 			return this->location.latitude;
 		}
 
+        void SetContext(const std::string& context) {
+            std::string http = "http";
+            std::size_t found = context.find(http);
+            if (found == std::string::npos) {
+                this->context = context;
+            } else {
+                this->context.clear();
+                for (std::size_t i = 0; i < found; ++i) {
+                    this->context.push_back(context[i]);
+                }
+                if (!this->context.empty() && this->context.back() == ' ') {
+                    this->context.pop_back();
+                }
+            }
+
+            return ;
+        }
+
+        void SetContext(std::string&& context) {
+            std::string http = "http";
+            std::size_t found = context.find(http);
+            if (found == std::string::npos) {
+                this->context = std::move(context);
+            } else {
+                this->context.clear();
+                for (std::size_t i = 0; i < found; ++i) {
+                    this->context.push_back(context[i]);
+                }
+                if (!this->context.empty() && this->context.back() == ' ') {
+                    this->context.pop_back();
+                }
+            }
+
+            return ;
+        }
+
+        const std::string GetContext() const {
+            return this->context;
+        }
+
 		void SetWordBag(const std::unordered_multiset<std::string>& word_bag) {
 			if (word_bag.empty()) {
 				return;
@@ -168,6 +216,6 @@ namespace PreProcessing::TweetParser {
 			return this->snapshot_index;
 		}
 	};
-}; // end namespace PreProcessing::TweetParser
+} // end namespace PreProcessing::TweetParser
 
 #endif // !TWEET_H

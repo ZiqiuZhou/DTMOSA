@@ -1,6 +1,4 @@
 #include <iostream>
-#include <sstream>
-#include <algorithm>
 
 #include "crawled_data_parser.h"
 
@@ -25,12 +23,12 @@ namespace PreProcessing::JsonParser {
 			tweet.SetTweetID(document["tweet_id"].GetString());
 		}
 
-		if (!(document.HasMember("user_name") && document["user_name"].IsString() && !document["user_name"].IsNull())) {
+		if (!(document.HasMember("user_id") && document["user_id"].IsString() && !document["user_id"].IsNull())) {
 			std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
-				<< " Invalid user_name element in json." << std::endl;
+				<< " Invalid user_id element in json." << std::endl;
 			return false;
 		} else {
-			tweet.SetUserName(document["user_name"].GetString());
+			tweet.SetUserID(document["user_id"].GetString());
 		}
 
 		if (!(document.HasMember("time") && document["time"].IsString() && !document["time"].IsNull())) {
@@ -41,37 +39,36 @@ namespace PreProcessing::JsonParser {
 			tweet.SetCreateTime(document["time"].GetString());
 		}
 
-		if (!(document.HasMember("longitude") && document["longitude"].IsNumber()
-			&& document["longitude"].IsDouble() && !document["longitude"].IsNull())) {
-			std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
-				<< " Invalid longitude element in json." << std::endl;
-			return false;
-		} else {
+        if (!(document.HasMember("context") && document["context"].IsString() && !document["context"].IsNull())) {
+            std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                      << " Invalid context element in json." << std::endl;
+            return false;
+        } else {
+            tweet.SetContext(document["context"].GetString());
+        }
+
+		if (document.HasMember("longitude") && document["longitude"].IsNumber()
+			&& document["longitude"].IsDouble() && !document["longitude"].IsNull()) {
 			tweet.SetLongitude(document["longitude"].GetDouble());
 		}
 
-		if (!(document.HasMember("latitude") && document["latitude"].IsNumber()
-			&& document["latitude"].IsDouble() && !document["latitude"].IsNull())) {
-			std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
-				<< " Invalid latitude element in json." << std::endl;
-			return false;
-		}
-		else {
+		if (document.HasMember("latitude") && document["latitude"].IsNumber()
+			&& document["latitude"].IsDouble() && !document["latitude"].IsNull()) {
 			tweet.SetLatitude(document["latitude"].GetDouble());
 		}
 
-		if (!(document.HasMember("context") && document["context"].IsArray())) {
+		if (!(document.HasMember("word_bag") && document["word_bag"].IsArray())) {
 			std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
-				<< " Invalid context element in json." << std::endl;
+				<< " Invalid word_bag element in json." << std::endl;
 			return false;
 		} else {
-			const Value& context = document["context"];
+			const Value& words = document["word_bag"];
 			auto word_bag = tweet.GetWordBag();
 			// parse each element in context 
-			for (SizeType i = 0; i < context.Size(); ++i) {
-				if (context[i].IsString() && !context[i].IsNull()) {
-					auto segment = context[i].GetString();
-					word_bag.insert(std::move(segment));
+			for (SizeType i = 0; i < words.Size(); ++i) {
+				if (words[i].IsString() && !words[i].IsNull()) {
+					auto segment = words[i].GetString();
+					word_bag.insert(segment);
 				}
 			}
 			if (word_bag.empty()) {
@@ -82,4 +79,4 @@ namespace PreProcessing::JsonParser {
 
 		return true;
 	}
-};
+}

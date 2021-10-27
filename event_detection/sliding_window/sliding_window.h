@@ -5,7 +5,7 @@
 #include <unordered_set>
 #include <deque>
 
-#include "pre_processing/Tweet.h"
+#include "../pre_processing/Tweet.h"
 
 using PreProcessing::TweetParser::Tweet;
 
@@ -13,14 +13,14 @@ namespace EventTweet::SlidingWindow {
 
 	using WordTweetPair = std::unordered_map<std::string, std::unordered_set<std::string> >;
 	using BurstyWords = std::unordered_set<std::string>;
-	using NameTweetMap = std::unordered_map<std::string, std::string>;
+	using UserTweetMap = std::unordered_map<std::string, std::string>;
 
 	class SnapShot {
 	private:
 		int t; // snapshot index
 		std::unique_ptr<WordTweetPair> word_pair_ptr;
 		std::unique_ptr<BurstyWords> bursty_words_ptr;
-		std::unique_ptr<NameTweetMap> name_tweet_map_ptr;
+		std::unique_ptr<UserTweetMap> user_tweet_map_ptr;
 
 	public:
 		SnapShot() {
@@ -29,8 +29,8 @@ namespace EventTweet::SlidingWindow {
 			word_pair_ptr = std::make_unique<WordTweetPair>();
 			bursty_words_ptr.reset();
 			bursty_words_ptr = std::make_unique<BurstyWords>();
-			name_tweet_map_ptr.reset();
-			name_tweet_map_ptr = std::make_unique<NameTweetMap>();
+            user_tweet_map_ptr.reset();
+            user_tweet_map_ptr = std::make_unique<UserTweetMap>();
 		}
 
 		SnapShot(int _t) : t(_t) {
@@ -38,14 +38,14 @@ namespace EventTweet::SlidingWindow {
 			word_pair_ptr = std::make_unique<WordTweetPair>();
 			bursty_words_ptr.reset();
 			bursty_words_ptr = std::make_unique<BurstyWords>();
-			name_tweet_map_ptr.reset();
-			name_tweet_map_ptr = std::make_unique<NameTweetMap>();
+            user_tweet_map_ptr.reset();
+            user_tweet_map_ptr = std::make_unique<UserTweetMap>();
 		};
 
 		~SnapShot() {
 			word_pair_ptr.reset();
 			bursty_words_ptr.reset();
-			name_tweet_map_ptr.reset();
+            user_tweet_map_ptr.reset();
 		}
 
 		SnapShot(const SnapShot& snapshot) = delete;
@@ -56,7 +56,7 @@ namespace EventTweet::SlidingWindow {
 			this->t = snapshot.t;
 			this->word_pair_ptr = std::move(std::exchange(snapshot.word_pair_ptr, nullptr));
 			this->bursty_words_ptr = std::move(std::exchange(snapshot.bursty_words_ptr, nullptr));
-			this->name_tweet_map_ptr = std::move(std::exchange(snapshot.name_tweet_map_ptr, nullptr));
+			this->user_tweet_map_ptr = std::move(std::exchange(snapshot.user_tweet_map_ptr, nullptr));
 		}
 
 		SnapShot& operator= (SnapShot&& snapshot) noexcept {
@@ -67,7 +67,7 @@ namespace EventTweet::SlidingWindow {
 			this->t = snapshot.t;
 			this->word_pair_ptr = std::move(std::exchange(snapshot.word_pair_ptr, nullptr));
 			this->bursty_words_ptr = std::move(std::exchange(snapshot.bursty_words_ptr, nullptr));
-			this->name_tweet_map_ptr = std::move(std::exchange(snapshot.name_tweet_map_ptr, nullptr));
+			this->user_tweet_map_ptr = std::move(std::exchange(snapshot.user_tweet_map_ptr, nullptr));
 
 			return *this;
 		}
@@ -78,8 +78,8 @@ namespace EventTweet::SlidingWindow {
 			word_pair_ptr = std::make_unique<WordTweetPair>();
 			bursty_words_ptr.reset();
 			bursty_words_ptr = std::make_unique<BurstyWords>();
-			name_tweet_map_ptr.reset();
-			name_tweet_map_ptr = std::make_unique<NameTweetMap>();
+            user_tweet_map_ptr.reset();
+            user_tweet_map_ptr = std::make_unique<UserTweetMap>();
 
 			return ;
 		}
@@ -105,7 +105,7 @@ namespace EventTweet::SlidingWindow {
 
 		BurstyWords& GetBurstyWords();
 
-		NameTweetMap& GetNameTweetMap();
+		UserTweetMap& GetUserTweetMap();
 
 		bool HasDuplicateUser(Tweet& tweet);
 	};
