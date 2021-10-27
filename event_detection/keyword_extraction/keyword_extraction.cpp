@@ -83,8 +83,8 @@ namespace EventTweet::KeywordExtraction {
 
 			if (Contains(word)) {
 				WordUsageBaseline& word_baseline = words_history[word];
-				int num_occurance = tweetID_set.size();
-				if ((num_occurance - word_baseline.GetMean()) / word_baseline.GetStandardDeviation() >= 2) {
+				int num_occurrence = tweetID_set.size();
+				if ((num_occurrence - word_baseline.GetMean()) / word_baseline.GetStandardDeviation() >= 2) {
 					bursty_word_set.insert(std::move(word));
 				}
 			} else {
