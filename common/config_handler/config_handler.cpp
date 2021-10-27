@@ -60,7 +60,7 @@ namespace common::config_handler {
 			else if (linebuf[0] == 0) {
 				continue;
 			}
-			else if (linebuf[0] == ';' || linebuf[0] == ' ' || linebuf[0] == '#' || linebuf[0] == '\t' || linebuf[0] == '\n') { // ×¢ÊÍÐÐ
+			else if (linebuf[0] == ';' || linebuf[0] == ' ' || linebuf[0] == '#' || linebuf[0] == '\t' || linebuf[0] == '\n') { // ×¢ï¿½ï¿½ï¿½ï¿½
 				continue;
 			}
 
@@ -134,10 +134,10 @@ namespace common::config_handler {
 		return default_value;
 	}
 
-	std::vector<double>& ConfigFileHandler::GetValue(const std::string& config_name, 
-		std::vector<double>& value) {
+	std::vector<double> ConfigFileHandler::GetVector(const std::string& config_name) {
 		auto config_pos = config_items.find(config_name);
-		if (config_pos != config_items.end() && (*config_pos).second != "") {
+		if (config_pos != config_items.end() && !(*config_pos).second.empty()) {
+            std::vector<double> result;
 			auto& list = (*config_pos).second;
 			auto iter = list.begin();
 			std::string candidate;
@@ -152,11 +152,12 @@ namespace common::config_handler {
 					candidate.push_back(*iter);
 					++iter;
 				}
-				value.push_back(std::stod(std::move(candidate)));
+				result.push_back(std::stod(std::move(candidate)));
 				candidate.clear();
 			}
+            return result;
 		}
-		return value;
+		return {};
 	}
 }
 

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Tweet.h"
-#include "include/rapidjson/document.h"
-#include "include/rapidjson/error/en.h"
+#include "../include/rapidjson/document.h"
+#include "../include/rapidjson/error/en.h"
 
 using PreProcessing::TweetParser::Tweet;
 using rapidjson::Document;

@@ -7,7 +7,7 @@
 #include <numeric>
 #include <cmath>
 
-#include "sliding_window.h"
+#include "sliding_window/sliding_window.h"
 
 using EventTweet::SlidingWindow::WordTweetPair;
 using EventTweet::SlidingWindow::SnapShot;

@@ -1,4 +1,4 @@
-#include "event_detection/EventTweet/sliding_window.h"
+#include "sliding_window.h"
 
 namespace EventTweet::SlidingWindow {
 
@@ -18,12 +18,12 @@ namespace EventTweet::SlidingWindow {
 	}
 
 	void SnapShot::GenerateUserTweetMap(Tweet& tweet) {
-		auto& name_tweet_map = GetNameTweetMap();
-		std::string name = tweet.GetUserName();
+		auto& user_tweet_map = GetUserTweetMap();
+		std::string user_id = tweet.GetUserID();
 		std::string id = tweet.GetTweetID();
 
 		if (!HasDuplicateUser(tweet)) {
-			name_tweet_map[name] = id;
+            user_tweet_map[user_id] = id;
 		} else {
 			tweet.SetTweetID(id);
 		}
@@ -41,14 +41,14 @@ namespace EventTweet::SlidingWindow {
 		return *bursty_words_ptr;
 	}
 
-	NameTweetMap& SnapShot::GetNameTweetMap() {
-		return *name_tweet_map_ptr;
+	UserTweetMap& SnapShot::GetUserTweetMap() {
+		return *user_tweet_map_ptr;
 	}
 
 	bool SnapShot::HasDuplicateUser(Tweet& tweet) {
-		auto& name_tweet_map = GetNameTweetMap();
-		std::string user_name = tweet.GetUserName();
-		if (!name_tweet_map.empty() && name_tweet_map.find(user_name) != name_tweet_map.end()) {
+		auto& user_tweet_map = GetUserTweetMap();
+		std::string user_id = tweet.GetUserID();
+		if (!user_tweet_map.empty() && user_tweet_map.find(user_id) != user_tweet_map.end()) {
 			return true;
 		}
 		return false;

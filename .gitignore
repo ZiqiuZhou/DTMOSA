@@ -1,9 +1,5 @@
 ##ignore this file##
-/twitter_api_keys/
 /data/
-*.sln
-*.vcxproj
-*.filters
-*.user
-*.vs
-*x64
+/build/
+/lib/
+.idea
