@@ -7,7 +7,7 @@ add_library(event_detection SHARED
         "tweet_stream_process.cpp"
         "sliding_window/sliding_window.cpp"
         "keyword_extraction/keyword_extraction.cpp"
-        )
+        "semantic_similarity/co_occurrence_graph.cpp")
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
