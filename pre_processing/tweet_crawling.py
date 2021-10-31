@@ -80,7 +80,7 @@ class DataParser(object):
     def __init__(self):
         pass
     
-    def on_data(self, tweet_json, place_dict, file=""):
+    def on_data(self, tweet_json, place_dict, f="", f_location_predict=""):
         tweet_id = str(tweet_json['id'])
         created_at = tweet_json['created_at']
         timestamp = datetime.strftime(datetime.strptime(created_at, '%Y-%m-%dT%H:%M:%S.000Z'),
@@ -95,8 +95,7 @@ class DataParser(object):
         # process the geo-tags
         if tweet_json.get('geo') == None:
             record = {"tweet_id": tweet_id, "user_id": user_id, "time": timestamp, "context": context, "word_bag": word_bag}
-            print(record)
-            file.write(json.dumps(record, ensure_ascii=False) + '\n')        
+            self.regex_filter(record, f, f_location_predict)    
             return
         
         if tweet_json['geo'].get('coordinates') == None:
@@ -115,8 +114,7 @@ class DataParser(object):
                 lat = (bbox[1] + bbox[3]) / 2.0
             else:
                 record = {"tweet_id": tweet_id, "user_id": user_id, "time": timestamp, "context": context, "word_bag": word_bag}
-                print(record)
-                file.write(json.dumps(record, ensure_ascii=False) + '\n')              
+                self.regex_filter(record, f, f_location_predict)              
                 return
                 
         else:
@@ -126,9 +124,38 @@ class DataParser(object):
         record = {"tweet_id": tweet_id, "user_id": user_id, "time": timestamp, "longitude": lng,
                       "latitude": lat, "context": context, "word_bag": word_bag}
         print(record)
-        file.write(json.dumps(record, ensure_ascii=False) + '\n')
+        f.write(json.dumps(record, ensure_ascii=False) + '\n')
         
         return 
+        
+    def regex_filter(self, record, f="", f_location_predict=""):
+    	regex= r'[0-9]*\s?[0-9A-Za-z]+\s(rd|beach|ave|airport|Airport|Port|Street|Avenue|Center|Road|Yard|Lane|Court|Hill|Highwalk|Way|Square|Walk|Park|Underground|Passage|Alley|Close|Gardens|Hall|Circle|Row|Buildings|Crescent|Market|Drive|Arcade|Esplanade|Grove|Garden|Bridge|Ridge|Terrace|Boulevard|Inn|Wharf|St|Ave|Rd|Yd|Ct|Pl|Sq|Bld|Beach|Blvd|Cres|Dr|Esp|Grn|Gr|Tce|Bvd|Bayou|Parkway|bayou|street|avenue|road|yard|lane|court|square|park|underground|building|Wall|way|wall|port|crescent|drive|esplanade|garden|bridge|ridge|terrace|boulevard|Building|grove|underground|School|school|Highschool|highschool|high school|center)\s?([0-9])*\b'
+    	
+    	listOfStrings = ['his' , 'the', 'a', 'my', 'never', 'from','in',r'that''s','called','for','to',
+                    'at','with','of','minor','own','against','front','that','make','grave','were',
+                    'busy','apartment','not','worst','watering','temporary','are','is','and','about',
+                    'know','flooded','your','access','service','secret','gotta','whole','this','their',
+                    'shit','save','reports','posted','possible','parallel','outside','our','or','observe',
+                    'one','on','no','neighbours','multiple','localized','like','its','impacted','her',
+                    'hazardous','every','empty','dear','come','by','gotta','of','stop','much','don\'t',
+                    'reported','before','after','hurricane']
+        
+    	locations = re.finditer(regex, record['context'])
+    	loc = []
+    	for m in locations:
+    	    loc_name = m.group().title().lower().strip()
+    	    if loc_name.partition(' ')[0].lower() not in listOfStrings:
+    	        loc.append(loc_name.strip())
+    	if loc:
+    	    print(record)
+    	    f.write(json.dumps(record, ensure_ascii=False) + '\n')
+    	    predict_record = record
+    	    predict_record["longitude"] = 0.
+    	    predict_record["latitude"] = 0.
+    	    predict_record["locations"] = loc
+    	    f_location_predict.write(json.dumps(predict_record, ensure_ascii=False) + '\n')
+    	    
+    	return
 
 
 class CrawlData(object):
@@ -139,7 +166,8 @@ class CrawlData(object):
                  bounding_box, 
                  start_time, 
                  end_time,
-                 file=""):
+                 f="",
+                 f_location_predict=""):
         self.bearer_token = bearer_token
         self.header = {'Authorization': "Bearer " + self.bearer_token}
         self.next_token = ""
@@ -149,11 +177,13 @@ class CrawlData(object):
         self.has_next_round = True
         self.tweet_count = 0
         self.total_count = 1000000
-        self.f = open(file, 'a', encoding="utf-8")
+        self.f = open(f, 'a', encoding="utf-8")
+        self.f_location_predict = open(f_location_predict, 'a', encoding="utf-8")
         self.parser = DataParser()
     
     def crawl_data(self):
-        search_url = "https://api.twitter.com/2/tweets/search/all?query=has:geo lang:en bounding_box:["\
+        search_url = "https://api.twitter.com/2/tweets/search/all?query=Hurricane "\
+        "Hurricane OR Harvey OR flood OR Texas OR Houston OR storm OR has:geo lang:en bounding_box:["\
         + self.bounding_box[0] + " " + self.bounding_box[1] + " " + self.bounding_box[2] + " " + self.bounding_box[3] + \
         "]&&start_time=" + self.start_time + "&&end_time=" + self.end_time + \
         "&&tweet.fields=id,author_id,created_at,geo,text&&expansions=geo.place_id&&" + \
@@ -180,7 +210,7 @@ class CrawlData(object):
             
         for data in datajson:
             self.tweet_count = self.tweet_count + 1           
-            self.parser.on_data(data, place_dict, self.f) # parse data
+            self.parser.on_data(data, place_dict, self.f, self.f_location_predict) # parse data
             
         return self.has_next_round
     
@@ -213,8 +243,9 @@ class CrawlData(object):
 if __name__ == "__main__":
     # These are provided to you through the Twitter API after you create a account
     # register a Twitter App to get the keys and access tokens.
-    output_file = "D:/Heidelberg/master_thesis/GeoBurst_OSM/data/tweets_Houston.json"
-    output_file_temp = "D:/Heidelberg/master_thesis/GeoBurst_OSM/data/tweets_Houston.json"
+    output_file = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston.json"
+    file_location_predict = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_need_predict_loc.json"
+    output_file_temp = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston_temp.json"
 
     # LOCATIONS are the longitude, latitude coordinate corners for a box that restricts the
     # geographic area from which you will stream tweets. The first two define the southwest
@@ -222,9 +253,9 @@ if __name__ == "__main__":
     bounding_box = ["-95.565128", "29.544661", "-95.185277", "29.883392"]  # Houston City
     bearer_token = "AAAAAAAAAAAAAAAAAAAAAEsVSAEAAAAA2Vp0os7em9%2FTe8tUCBWbuP8kRmA%3D82PgW6sI4lZqRX4XApzcDBwmmGwvNy8o43h7SnlVqv16fqxX8w"
     start_time = "2017-08-20T00:00:01.000Z"
-    end_time = "2017-08-30T23:59:59.000Z"
+    end_time = "2017-09-05T23:59:59.000Z"
 
-    crawler = CrawlData(bearer_token, bounding_box, start_time, end_time, output_file)
+    crawler = CrawlData(bearer_token, bounding_box, start_time, end_time, output_file, file_location_predict)
     crawler.crawl_process()
     
     file = open(output_file, "r", encoding="utf-8")
