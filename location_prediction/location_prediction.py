@@ -197,7 +197,7 @@ def generate_final_data(input_file, output_file, merged_tweet_list):
             tweet_merged = merged_tweet_list[idx]
             time_merged = datetime.strptime(tweet_merged['time'], '%Y-%m-%d %H:%M:%S')
             
-            if time_merged > time_raw:
+            if time_merged > time_raw and tweet_raw.get('longitude') and tweet_raw.get('latitude'):
                 output_file.write(json.dumps(tweet_raw, ensure_ascii=False) + '\n')
             elif time_merged == time_raw:
                 while time_merged == time_raw:

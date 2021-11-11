@@ -44,7 +44,8 @@ def location_prediction(tagger, FILE_PATH="", OUTPUT_FILE_PATH=""):
                 print("predict line: {}".format(line_index))
                 if not line:
                     break
-                
+                if 'NASAs' in  tweet['context']:
+                    continue
                 has_address_name = False
                 tweet = json.loads(line)
                 reference_loc_list = tweet["locations"]
