@@ -87,6 +87,10 @@ class DataParser(object):
                                       '%Y-%m-%d %H:%M:%S')
         user_id = tweet_json['author_id']
         context = tweet_json['text'].encode("ascii", "ignore").decode()  # filter out non-ascii characters
+        if "RT @" in context:
+            return 
+        if "Washington" in context:
+            return
 
         lemmatizer = WordNetLemmatizer()
         pre_processing_pipeline = PipeLine(lemmatizer)
@@ -95,7 +99,7 @@ class DataParser(object):
         # process the geo-tags
         if tweet_json.get('geo') == None:
             record = {"tweet_id": tweet_id, "user_id": user_id, "time": timestamp, "context": context, "word_bag": word_bag}
-            self.regex_filter(record, f, f_location_predict)    
+            self.geoterm_filter(record, f, f_location_predict)    
             return
         
         if tweet_json['geo'].get('coordinates') == None:
@@ -114,7 +118,7 @@ class DataParser(object):
                 lat = (bbox[1] + bbox[3]) / 2.0
             else:
                 record = {"tweet_id": tweet_id, "user_id": user_id, "time": timestamp, "context": context, "word_bag": word_bag}
-                self.regex_filter(record, f, f_location_predict)              
+                self.geoterm_filter(record, f, f_location_predict)              
                 return
                 
         else:
@@ -128,8 +132,8 @@ class DataParser(object):
         
         return 
         
-    def regex_filter(self, record, f="", f_location_predict=""):
-    	regex= r'[0-9]*\s?[0-9A-Za-z]+\s(rd|beach|ave|airport|Airport|Port|Street|Avenue|Center|Road|Yard|Lane|Court|Hill|Highwalk|Way|Square|Walk|Park|Underground|Passage|Alley|Close|Gardens|Hall|Circle|Row|Buildings|Crescent|Market|Drive|Arcade|Esplanade|Grove|Garden|Bridge|Ridge|Terrace|Boulevard|Inn|Wharf|St|Ave|Rd|Yd|Ct|Pl|Sq|Bld|Beach|Blvd|Cres|Dr|Esp|Grn|Gr|Tce|Bvd|Bayou|Parkway|bayou|street|avenue|road|yard|lane|court|square|park|underground|building|Wall|way|wall|port|crescent|drive|esplanade|garden|bridge|ridge|terrace|boulevard|Building|grove|underground|School|school|Highschool|highschool|high school|center)\s?([0-9])*\b'
+    def geoterm_filter(self, record, f="", f_location_predict=""):
+    	regex= r'[0-9]*\s?[0-9A-Za-z]+\s(rd|beach|ave|airport|Airport|Port|Street|Avenue|Center|Road|Yard|Lane|Court|Hill|Highwalk|Way|Square|Walk|Park|Underground|Passage|Alley|Close|Gardens|Hall|Circle|Row|Buildings|Crescent|Market|Drive|Arcade|Esplanade|Grove|Garden|Bridge|Ridge|Terrace|Boulevard|Inn|Wharf|St|Ave|Rd|Yd|Ct|Pl|Sq|Bld|Beach|Blvd|Cres|Dr|Esp|Grn|Gr|Tce|Bvd|Bayou|Parkway|bayou|street|avenue|road|yard|lane|court|square|park|underground|building|way|port|crescent|drive|esplanade|garden|bridge|ridge|terrace|boulevard|Building|grove|underground|School|school|Highschool|highschool|high school|center)\s?([0-9])*\b'
     	
     	listOfStrings = ['his' , 'the', 'a', 'my', 'never', 'from','in',r'that''s','called','for','to',
                     'at','with','of','minor','own','against','front','that','make','grave','were',
@@ -138,7 +142,7 @@ class DataParser(object):
                     'shit','save','reports','posted','possible','parallel','outside','our','or','observe',
                     'one','on','no','neighbours','multiple','localized','like','its','impacted','her',
                     'hazardous','every','empty','dear','come','by','gotta','of','stop','much','don\'t',
-                    'reported','before','after','hurricane']
+                    'reported','before','after','hurricane','washington']
         
     	locations = re.finditer(regex, record['context'])
     	loc = []
@@ -176,14 +180,14 @@ class CrawlData(object):
         self.end_time = end_time
         self.has_next_round = True
         self.tweet_count = 0
-        self.total_count = 1000000
+        self.total_count = 5000000
         self.f = open(f, 'a', encoding="utf-8")
         self.f_location_predict = open(f_location_predict, 'a', encoding="utf-8")
         self.parser = DataParser()
     
     def crawl_data(self):
-        search_url = "https://api.twitter.com/2/tweets/search/all?query=Hurricane "\
-        "Hurricane OR Harvey OR flood OR Texas OR Houston OR storm OR has:geo lang:en bounding_box:["\
+        search_url = "https://api.twitter.com/2/tweets/search/all?query=Hurricane OR"\
+        "HurricaneHarvey OR Harvey OR HoustonFlood OR Hurricane Harvey OR has:geo lang:en bounding_box:["\
         + self.bounding_box[0] + " " + self.bounding_box[1] + " " + self.bounding_box[2] + " " + self.bounding_box[3] + \
         "]&&start_time=" + self.start_time + "&&end_time=" + self.end_time + \
         "&&tweet.fields=id,author_id,created_at,geo,text&&expansions=geo.place_id&&" + \
@@ -194,7 +198,9 @@ class CrawlData(object):
         response = requests.get(search_url, headers=self.header)
         searchjson = json.loads(response.content)
         
-        if searchjson['meta'].get('next_token') != None:
+        if searchjson.get('meta') == None:
+            return self.has_next_round
+        elif searchjson['meta'].get('next_token') != None:
             self.next_token = searchjson['meta']['next_token']
         else:
             self.has_next_round = False 
@@ -202,11 +208,12 @@ class CrawlData(object):
         datajson = searchjson['data']
         print(datajson)
         
-        place_list = searchjson['includes']['places']
         place_dict = {}
-        for place_object in place_list:
-            key = place_object['id']
-            place_dict[key] = place_object
+        if searchjson.get('includes') != None and searchjson['includes'].get('places') != None:
+            place_list = searchjson['includes']['places']
+            for place_object in place_list:
+                key = place_object['id']
+                place_dict[key] = place_object
             
         for data in datajson:
             self.tweet_count = self.tweet_count + 1           
@@ -227,11 +234,11 @@ class CrawlData(object):
             
             # 1 requests / second limit
             if end_time - start_time < 1.:
-                time.sleep(1) 
+                time.sleep(2) 
             
             # 300 requests / 15 min limit
             if request_count_15min == 300 and end_time_15min - start_time_15min < 15 * 60:
-                time.sleep(15 * 60 - (end_time_15min - start_time_15min) + 5)
+                time.sleep(15 * 60 - (end_time_15min - start_time_15min) + 20)
                 
                 request_count_15min = 0
                 start_time_15min = time.time()
@@ -245,15 +252,17 @@ if __name__ == "__main__":
     # register a Twitter App to get the keys and access tokens.
     output_file = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston.json"
     file_location_predict = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_need_predict_loc.json"
-    output_file_temp = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston_temp.json"
+    output_file_temp = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston_temp3.json"
 
+    # load configurations
+    
     # LOCATIONS are the longitude, latitude coordinate corners for a box that restricts the
     # geographic area from which you will stream tweets. The first two define the southwest
     # corner of the box and the second two define the northeast corner of the box.
     bounding_box = ["-95.565128", "29.544661", "-95.185277", "29.883392"]  # Houston City
     bearer_token = "AAAAAAAAAAAAAAAAAAAAAEsVSAEAAAAA2Vp0os7em9%2FTe8tUCBWbuP8kRmA%3D82PgW6sI4lZqRX4XApzcDBwmmGwvNy8o43h7SnlVqv16fqxX8w"
     start_time = "2017-08-20T00:00:01.000Z"
-    end_time = "2017-09-05T23:59:59.000Z"
+    end_time = "2017-08-30T01:38:20.000Z"
 
     crawler = CrawlData(bearer_token, bounding_box, start_time, end_time, output_file, file_location_predict)
     crawler.crawl_process()
