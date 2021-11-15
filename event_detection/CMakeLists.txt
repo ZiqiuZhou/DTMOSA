@@ -2,12 +2,14 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 20)
 
 find_package(Boost REQUIRED COMPONENTS date_time)
+find_package(Eigen3 REQUIRED)
 
 add_library(event_detection SHARED
         "tweet_stream_process.cpp"
         "sliding_window/sliding_window.cpp"
         "keyword_extraction/keyword_extraction.cpp"
-        "semantic_similarity/co_occurrence_graph.cpp")
+        "tweet_similarity/co_occurrence_graph.cpp"
+        "tweet_similarity/random_walk_with_restart.cpp")
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
@@ -25,10 +27,12 @@ target_include_directories(event_detection
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
         ${PROJECT_SOURCE_DIR}/pre_processing
         ${Boost_INCLUDE_DIRS}
+        ${Eigen_INCLUDE_DIRS}
         )
 
 target_link_libraries(event_detection
         PUBLIC
         "${PROJECT_SOURCE_DIR}/lib/libpre_processing.so"
         ${Boost_LIBRARIES}
+        ${Eigen_LIBRARIES}
         )

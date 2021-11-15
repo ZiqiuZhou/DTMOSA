@@ -60,7 +60,7 @@ namespace PreProcessing::TweetParser {
 			this->location.latitude = tweet.location.latitude;
 		}
 
-		const Tweet& operator= (const Tweet& tweet) {
+		Tweet& operator= (const Tweet& tweet) {
 			if (this == &tweet) {
 				return *this;
 			}

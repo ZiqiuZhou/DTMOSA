@@ -63,8 +63,7 @@ namespace EventTweet::KeywordExtraction {
 			const std::string& word = (*iter).first;
 			if (Contains(word)) {
 				AddWordUsage(word, snapshot);
-			}
-			else {
+			} else {
 				ConstructWordHistory(word, snapshot);
 			}
 		}

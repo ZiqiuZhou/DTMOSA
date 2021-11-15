@@ -1,4 +1,6 @@
 #include <iostream>
+#include <eigen3/Eigen/SparseCore>
+#include <eigen3/Eigen/SparseCholesky>
 #include "include/rapidjson/document.h"
 #include "common/file_io/lines.h"
 #include "common/config_handler/config_handler.h"
@@ -36,8 +38,7 @@ int main() {
 
 
     TweetStreamProcess process(config_file_handler);
-    process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
-    std::cout << "finished";
-
+    //process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
+    std::cout << "finished" << std::endl;
     return 0;
 }
