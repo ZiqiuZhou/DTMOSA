@@ -63,37 +63,45 @@ namespace EventTweet::KeywordExtraction {
 			const std::string& word = (*iter).first;
 			if (Contains(word)) {
 				AddWordUsage(word, snapshot);
-			}
-			else {
+			} else {
 				ConstructWordHistory(word, snapshot);
 			}
 		}
 		return ;
 	}
 
-	void HistorySequenceSet::Burst(SnapShot& snapshot, std::unordered_set<std::string>& bursty_word_set) {
+	bool HistorySequenceSet::Burst(SnapShot& snapshot, std::unordered_set<std::string>& bursty_word_set) {
 		auto& word_tweet_pair = snapshot.GetWordTweetPair();
 		if (word_tweet_pair.empty()) {
-			return ;
+            std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                      << " word_tweet_pair is empty." << std::endl;
+			return false;
 		}
 
 		for (auto iter = word_tweet_pair.begin(); iter != word_tweet_pair.end(); ++iter) {
 			std::string word = (*iter).first;
 			const std::unordered_set<std::string>& tweetID_set = (*iter).second;
-
-			if (Contains(word)) {
-				WordUsageBaseline& word_baseline = words_history[word];
-				int num_occurrence = tweetID_set.size();
-				if ((num_occurrence - word_baseline.GetMean()) / word_baseline.GetStandardDeviation() >= 2) {
-					bursty_word_set.insert(std::move(word));
-				}
-			} else {
-				if (tweetID_set.size() >= 3) {
-					bursty_word_set.insert(std::move(word));
-				}
-			}
+            if (tweetID_set.size() >= 10) {
+                bursty_word_set.insert(std::move(word));
+            }
+//			if (Contains(word)) {
+//				WordUsageBaseline& word_baseline = words_history[word];
+//				int num_occurrence = tweetID_set.size();
+//				if ((num_occurrence - word_baseline.GetMean()) / word_baseline.GetStandardDeviation() < 2) {
+//					bursty_word_set.insert(std::move(word));
+//				}
+//			} else {
+//				if (tweetID_set.size() >= 5) {
+//					bursty_word_set.insert(std::move(word));
+//				}
+//			}
 		}
 
-		return;
+        if(bursty_word_set.empty()) {
+            std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                      << " bursty_word_set is empty." << std::endl;
+            return false;
+        }
+		return true;
 	}
 }

@@ -3,7 +3,7 @@ import re
 import json
 import nltk
 from nltk.tokenize import word_tokenize 
-from nltk.tag.stanford import StanfordNERTagger
+from sner import Ner
 
 def parse_tagged_location(tagged):
     if not tagged:
@@ -44,16 +44,16 @@ def location_prediction(tagger, FILE_PATH="", OUTPUT_FILE_PATH=""):
                 print("predict line: {}".format(line_index))
                 if not line:
                     break
-                if 'NASAs' in  tweet['context']:
-                    continue
                 has_address_name = False
                 tweet = json.loads(line)
+                if 'NASAs' in  tweet['context']:
+                    continue
                 reference_loc_list = tweet["locations"]
                 # check weather tweet contains address name (e.g. contains numbers)
                 has_address_name = check_address_name(reference_loc_list)
                 if not has_address_name:
                     tweet['has_address_name'] = False
-                    tagged = tagger.tag(word_tokenize(tweet['context']))
+                    tagged=tagger.get_entities(tweet['context'])
                     NER_location_list = parse_tagged_location(tagged)
                     tweet['loc_NER'] = NER_location_list
                 else:
@@ -67,8 +67,7 @@ if __name__ == "__main__":
     FILE_PATH = '/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_need_predict_loc.json'
     OUTPUT_FILE_PATH = '/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_after_NER_predict.json'
 
-    tagger = StanfordNERTagger(model_filename=PATH_TO_MODEL,path_to_jar=PATH_TO_JAR, encoding='utf-8')
-    
+    tagger = Ner(host='localhost',port=9199)
     try:
         location_prediction(tagger, FILE_PATH, OUTPUT_FILE_PATH)           
         sys.exit(0)

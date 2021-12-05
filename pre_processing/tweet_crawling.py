@@ -250,9 +250,10 @@ class CrawlData(object):
 if __name__ == "__main__":
     # These are provided to you through the Twitter API after you create a account
     # register a Twitter App to get the keys and access tokens.
-    output_file = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston.json"
-    file_location_predict = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_need_predict_loc.json"
-    output_file_temp = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston_temp3.json"
+    output_file = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston1.json"
+    file_location_predict = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_need_predict_loc1.json"
+    output_file_temp = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston_temp1.json"
+    file_location_predict_temp = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_need_predict_loc_temp1.json"
 
     # load configurations
     
@@ -261,8 +262,8 @@ if __name__ == "__main__":
     # corner of the box and the second two define the northeast corner of the box.
     bounding_box = ["-95.565128", "29.544661", "-95.185277", "29.883392"]  # Houston City
     bearer_token = "AAAAAAAAAAAAAAAAAAAAAEsVSAEAAAAA2Vp0os7em9%2FTe8tUCBWbuP8kRmA%3D82PgW6sI4lZqRX4XApzcDBwmmGwvNy8o43h7SnlVqv16fqxX8w"
-    start_time = "2017-08-20T00:00:01.000Z"
-    end_time = "2017-08-30T01:38:20.000Z"
+    start_time = "2017-09-06T00:00:01.000Z"
+    end_time = "2017-09-07T13:38:31.000Z"
 
     crawler = CrawlData(bearer_token, bounding_box, start_time, end_time, output_file, file_location_predict)
     crawler.crawl_process()
@@ -275,3 +276,14 @@ if __name__ == "__main__":
 
     file.close()
     file_temp.close()
+    
+    file = open(file_location_predict, "r", encoding="utf-8")
+    file_temp = open(file_location_predict_temp, "a", encoding="utf-8")
+    lines = file.readlines()
+    for line in reversed(lines):
+        file_temp.write(line)
+
+    file.close()
+    file_temp.close()
+    
+    
