@@ -9,6 +9,7 @@
 #include "../pre_processing/crawled_data_parser.h"
 #include "sliding_window/sliding_window.h"
 #include "keyword_extraction/keyword_extraction.h"
+#include "tweet_similarity/similarity_handler.h"
 
 using PreProcessing::TweetParser::Tweet;
 using PreProcessing::JsonParser::DataParser;
@@ -27,6 +28,8 @@ using EventTweet::SlidingWindow::SnapShot;
 using EventTweet::SlidingWindow::Window;
 using EventTweet::KeywordExtraction::HistorySequenceSet;
 using EventTweet::KeywordExtraction::WordUsageBaseline;
+using EventTweet::TweetSimilarity::TweetSimilarityHandler;
+using EventTweet::TweetSimilarity::TweetDistanceMap;
 
 namespace EventTweet::TweetStream {
 

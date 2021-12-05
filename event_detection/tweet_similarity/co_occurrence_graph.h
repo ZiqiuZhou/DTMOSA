@@ -6,6 +6,7 @@
 #define GEOBURST_OSM_CO_OCCURRENCE_GRAPH_H
 
 #include <vector>
+#include <unordered_map>
 #include <memory>
 #include <numeric>
 #include <eigen3/Eigen/SparseCore>
@@ -21,22 +22,20 @@ namespace EventTweet::Co_Occurrence_Graph {
 
     class Vertex {
     private:
-        std::unique_ptr<std::string> word_ptr;
+        std::shared_ptr<std::string> word_ptr;
 
     public:
         Vertex() {
             word_ptr = std::unique_ptr<std::string> { };
         }
 
-        explicit Vertex(std::string& _word) {
-            word_ptr = std::make_unique<std::string>(_word);
+        explicit Vertex(const std::string& _word) {
+            word_ptr = std::make_shared<std::string>(_word);
         }
 
-        explicit Vertex(std::string&& _word) {
-            word_ptr = std::make_unique<std::string>(std::move(_word));
+        Vertex(const Vertex& vertex) {
+            this->word_ptr = vertex.word_ptr;
         }
-
-        Vertex(const Vertex& vertex) = delete;
 
         Vertex(Vertex&& vertex)  noexcept {
             this->word_ptr = std::exchange(vertex.word_ptr, nullptr);
@@ -50,8 +49,13 @@ namespace EventTweet::Co_Occurrence_Graph {
     class KeyWordGraph {
     private:
         SnapShot snapshot;
+
         std::size_t SIZE = 0;
+
         std::vector<Vertex> vertex_list = {};
+
+        std::unordered_map<std::string, int> vertex_index_map = {};
+
         SparseMatrix<double, ColMajor> adjacent_matrix;
 
     public:
@@ -59,17 +63,25 @@ namespace EventTweet::Co_Occurrence_Graph {
 
         ~KeyWordGraph();
 
+        void Reset();
+
         explicit KeyWordGraph(SnapShot& _snapshot);
 
         KeyWordGraph& Init();
 
         KeyWordGraph& GenerateVertexList();
 
+        KeyWordGraph& GenerateVertexIndexMap();
+
         KeyWordGraph& GenerateAdjacentMatrix();
 
         int FindCommonTweets(std::unordered_set<std::string>& left_set, std::unordered_set<std::string>& right_set);
 
+        std::unordered_map<std::string, int>& GetVertexIndexMap();
+
         SparseMatrix<double, ColMajor>& GetAdjacentMatrix();
+
+        std::vector<Vertex>& GetVertexList();
     };
 }
 #endif //GEOBURST_OSM_CO_OCCURRENCE_GRAPH_H

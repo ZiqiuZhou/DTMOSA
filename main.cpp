@@ -8,6 +8,7 @@
 #include "pre_processing/Tweet.h"
 #include "pre_processing/crawled_data_parser.h"
 #include "event_detection/tweet_stream_process.h"
+#include "event_detection/tweet_similarity/similarity_handler.h"
 
 using common::file_io::FileReader;
 using common::file_io::FileMode;
@@ -38,7 +39,19 @@ int main() {
 
 
     TweetStreamProcess process(config_file_handler);
-    //process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
+    process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
     std::cout << "finished" << std::endl;
+
+    Eigen::SparseVector<double> vec(10);
+    vec.insert(1) = 1.;
+    vec.insert(2) = 2.;
+    for (Eigen::SparseVector<double>::InnerIterator it(vec); it; ++it)
+    {
+        std::cout << it.value() << it.index() << std::endl;
+    }
+
+    std::cout << boost::geometry::distance(point(-95.565128, 29.544661),
+                              point(-95.185277, 29.883392)) / 1e3;
+
     return 0;
 }

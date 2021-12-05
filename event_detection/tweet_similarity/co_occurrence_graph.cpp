@@ -6,8 +6,14 @@
 
 namespace EventTweet::Co_Occurrence_Graph {
 
+    KeyWordGraph::KeyWordGraph(SnapShot& _snapshot) {
+        snapshot = _snapshot;
+        SIZE = snapshot.GetBurstyWords().size();
+        vertex_list.clear();
+        vertex_index_map.clear();
+    }
+
     KeyWordGraph& KeyWordGraph::Init() {
-        vertex_list.resize(SIZE);
         adjacent_matrix.resize(static_cast<long>(SIZE), static_cast<long>(SIZE));
         return *this;
     }
@@ -15,20 +21,36 @@ namespace EventTweet::Co_Occurrence_Graph {
     KeyWordGraph::~KeyWordGraph() {
         snapshot.Reset();
         vertex_list.clear();
+        vertex_index_map.clear();
         adjacent_matrix.setZero();
     }
 
-    KeyWordGraph::KeyWordGraph(SnapShot& _snapshot) {
-        snapshot = _snapshot;
-        SIZE = snapshot.GetBurstyWords().size();
+    void KeyWordGraph::Reset() {
+        snapshot.Reset();
         vertex_list.clear();
+        vertex_index_map.clear();
+        adjacent_matrix.setZero();
     }
 
     KeyWordGraph& KeyWordGraph::GenerateVertexList() {
         auto& bursty_words_set = snapshot.GetBurstyWords();
-        for (auto word : bursty_words_set) {
-            auto vertex = Vertex(std::move(word));
+        for (const std::string& word : bursty_words_set) {
+            auto vertex = Vertex(word);
+            auto a  = vertex.GetVertex();
             vertex_list.emplace_back(std::move(vertex));
+        }
+        return *this;
+    }
+
+    KeyWordGraph& KeyWordGraph::GenerateVertexIndexMap() {
+        if (vertex_list.empty()) {
+            std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                      << " empty vertex_list." << std::endl;
+            return *this;
+        }
+        for (std::size_t i = 0; i < vertex_list.size(); ++i) {
+            std::string word = vertex_list[i].GetVertex();
+            vertex_index_map[word] = i;
         }
         return *this;
     }
@@ -36,6 +58,8 @@ namespace EventTweet::Co_Occurrence_Graph {
     int KeyWordGraph::FindCommonTweets(std::unordered_set<std::string>& left_set,
                                        std::unordered_set<std::string>& right_set) {
         if (left_set.empty() || right_set.empty()) {
+            std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                      << " empty set." << std::endl;
             return 0;
         }
 
@@ -98,8 +122,16 @@ namespace EventTweet::Co_Occurrence_Graph {
         return *this;
     }
 
+    std::unordered_map<std::string, int>& KeyWordGraph::GetVertexIndexMap() {
+        return this->vertex_index_map;
+    }
+
     SparseMatrix<double, ColMajor>& KeyWordGraph::GetAdjacentMatrix() {
         return this->adjacent_matrix;
+    }
+
+    std::vector<Vertex>& KeyWordGraph::GetVertexList() {
+        return this->vertex_list;
     }
 }
 

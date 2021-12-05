@@ -68,6 +68,6 @@ namespace EventTweet::KeywordExtraction {
 
 		void ManipulateWordHistory(SnapShot& snapshot);
 
-		void Burst(SnapShot& snapshot, std::unordered_set<std::string>& bursty_word_set);
+		bool Burst(SnapShot& snapshot, std::unordered_set<std::string>& bursty_word_set);
 	};
 }

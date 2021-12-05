@@ -9,11 +9,11 @@ import haversine as hs
 from enum import Enum
 from datetime import datetime
 from functools import cmp_to_key
-from geopy.geocoders import Nominatim
+from geopy.geocoders import Nominatim, ArcGIS
 
 class Disambiguity(object):
     def __init__(self):
-        self.nlp = spacy.load('en_core_web_sm')
+        self.nlp = spacy.load('en_core_web_sm', disable=["tok2vec", "tagger", "parser", "attribute_ruler", "lemmatizer"])
         self.gc = geonamescache.GeonamesCache()
         self.cities = self.gc.get_cities()
         self.states = self.gc.get_us_states()
@@ -43,6 +43,8 @@ class Disambiguity(object):
         unordered_GPE_set = set()
         if 'HTX' in tweet['context']:
             unordered_GPE_set.add('Houston')
+            unordered_GPE_set.add('Texas')
+        if 'TX' in tweet['context']:
             unordered_GPE_set.add('Texas')
 	
         doc = self.nlp(tweet['context'])
@@ -88,6 +90,7 @@ class Disambiguity(object):
         if not tweet['has_address_name']:    
             # only GPE in NER_loc, not valuable information
             if len(tweet['loc_NER']) == 1 and tweet['loc_NER'][0] in unordered_GPE_set:
+                tweet['can_predict'] = False
                 return success_parse_GPE	
             for loc in tweet['loc_NER']:
                 if loc not in GPE_set:
@@ -116,10 +119,10 @@ class Disambiguity(object):
                 return
             else:
                 success_parse_GPE = self.parse_geo_political_entity(tweet)
-                    
+                   
         # 2. Those don't have GPE mentioned need further consideration
         
-        if not success_parse_GPE:
+        if not success_parse_GPE and tweet['can_predict']:
             if tweet.get('loc_NER') != None and tweet['loc_NER']:
                 tweet['locations'] = tweet['loc_NER']
             elif tweet.get('loc_address') != None and tweet['loc_address']:
@@ -141,10 +144,10 @@ class LocationPredictor(object):
         
     def request_geolocator(self, loc_str):
         self.start_time = time.time()
-        location = self.geolocator.geocode(loc_str)
+        location = self.geolocator.geocode(loc_str, timeout=None)
         self.end_time = time.time()  
         if self.end_time - self.start_time < self.request_rate:
-            time.sleep(1)         
+            time.sleep(self.request_rate - (self.end_time - self.start_time))         
         return location
         
     def is_valid_location(self, longitude, latitude):
@@ -167,6 +170,9 @@ class LocationPredictor(object):
         return is_valid
             
     def predict(self, tweet):
+        """
+        predict the coordinates of a tweet
+        """
         if tweet.get('locations') == None or not tweet['locations']:
             return []
 
@@ -178,7 +184,7 @@ class LocationPredictor(object):
                 loc = loc + ", " + self.state
             location = self.request_geolocator(loc)
             if location and location.longitude and location.latitude and self.is_valid_location(location.longitude, location.latitude):
-                tweet_temp = tweet
+                tweet_temp = tweet.copy()
                 tweet_temp["tweet_id"] = tweet["tweet_id"] + str(i)
                 tweet_temp["longitude"] = location.longitude
                 tweet_temp["latitude"] = location.latitude
@@ -188,7 +194,7 @@ class LocationPredictor(object):
                     
 def generate_final_data(input_file, output_file, merged_tweet_list):    
     num_lines_merged = len(merged_tweet_list)
-    int idx = 0
+    idx = 0
     for line_raw in input_file:
         tweet_raw = json.loads(line_raw)
         time_raw = datetime.strptime(tweet_raw['time'], '%Y-%m-%d %H:%M:%S')
@@ -208,7 +214,8 @@ def generate_final_data(input_file, output_file, merged_tweet_list):
                     tweet_merged = merged_tweet_list[idx]
                     time_merged = datetime.strptime(tweet_merged['time'], '%Y-%m-%d %H:%M:%S')
         else:
-            output_file.write(json.dumps(tweet_raw, ensure_ascii=False) + '\n')      
+            if tweet_raw.get('longitude') and tweet_raw.get('latitude'):
+                output_file.write(json.dumps(tweet_raw, ensure_ascii=False) + '\n')      
     return
                     
 if __name__ == "__main__":
@@ -237,7 +244,7 @@ if __name__ == "__main__":
                         continue
                     tweets = predictor.predict(tweet)
                     if not tweets:
-                        tweet['can_predict'] = False
+                        tweet['need_further_predict'] = True
                         tweet_list.append(tweet)
                     else:
                         for tweet_gen in tweets:

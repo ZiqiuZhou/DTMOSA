@@ -77,6 +77,10 @@ namespace PreProcessing::JsonParser {
 			tweet.SetWordBag(std::move(word_bag));
 		}
 
+        if ((document.HasMember("need_further_predict") && document["need_further_predict"].IsBool())) {
+            tweet.SetPredictFlag(document["need_further_predict"].GetBool());
+        }
+
 		return true;
 	}
 }

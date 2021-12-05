@@ -1,5 +1,7 @@
 #!/bin/sh
 
+java -Dclasspath=./lib -cp stanford-ner.jar edu.stanford.nlp.ie.NERServer -port 9199 -loadClassifier /home/dietrich/stanford-ner-4.2.0/stanford-ner-2020-11-17/classifiers/english.all.3class.distsim.crf.ser.gz
+
 loc_file="/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_need_predict_loc.json"
 loc_file_after_NER="/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_after_NER_predict.json"
 loc_file_after_address_net="/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_after_address_net_predict.json"
@@ -44,9 +46,9 @@ if [ $?==0 ];then
     python location_prediction.py
 
     if [ $?==0 ];then
-        echo "address location prediction finished."
+        echo "location prediction finished."
     else
-        echo "address prediction exception occurs."
+        echo "prediction exception occurs."
         exit 1
     fi
 fi
