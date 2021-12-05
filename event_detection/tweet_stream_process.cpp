@@ -24,10 +24,10 @@ namespace EventTweet::TweetStream {
 
 		int const window_size = sliding_window.GetWindowSize();
 		int const history_length = history_sequence_set.GetHistoryLength();
+        int index = 0;
 		// iterate all tweets
         for (std::string_view line : linesInFile(std::move(fileReader))) {
 			std::string json_tweet = std::string(line);
-
 			Tweet tweet;
 			if (!json_parser.CrawledTweetParser(tweet, json_tweet)) {
 				continue;
@@ -37,21 +37,30 @@ namespace EventTweet::TweetStream {
 			std::string timestamp = tweet.GetCreateTime();
 			auto duration = ToTimeDuration(std::move(timestamp));
 			// process the entire snapshot
-			if (time_interval - duration <= 0) { 
+			if (time_interval - duration <= 0) {
+                std::cout << "process snapshot: " << snapshot.GetIndex() << std::endl;
 				// construct history usage
 				if (snapshot.GetIndex() < history_length) {
 					history_sequence_set.ManipulateWordHistory(snapshot);
-				}
-
-				// get bursty words set at snapshot t
-				if (snapshot.GetIndex() >= history_length) {
-					BurstyWords bursty_word_set;
-					history_sequence_set.Burst(snapshot, bursty_word_set);
-					snapshot.SetBurstyWords(std::move(bursty_word_set));
-				}
-
+				} else {
+                    // get bursty words set at snapshot t
+                    BurstyWords bursty_word_set;
+                    if (!history_sequence_set.Burst(snapshot, bursty_word_set)) {
+                        current_snapshot_index++;
+                        snapshot.SetIndex(current_snapshot_index);
+                        int step = duration / time_interval;
+                        start_time += seconds(step * time_interval);
+                        continue;
+                    }
+                    snapshot.SetBurstyWords(std::move(bursty_word_set));
+                    // compute tweet similarity and predict location
+                    snapshot.GenerateWordIndexMap();
+                    TweetSimilarityHandler similarity_handler(snapshot, config_file_handler);
+                    similarity_handler.Init();
+                    TweetDistanceMap& tweet_dist_map = similarity_handler.GenerateTextualSimMap();
+                }
 				// trigger sliding window to slide
-				sliding_window.Slide(std::move(snapshot)); 
+				sliding_window.Slide(snapshot);
 				snapshot.Reset();
 
 				// switch to next snapshot
@@ -61,9 +70,11 @@ namespace EventTweet::TweetStream {
 				start_time += seconds(step * time_interval);
 			} 
 
-			tweet.SetSnapShotIndex(current_snapshot_index);
 			snapshot.GenerateUserTweetMap(tweet);
 			snapshot.GenerateWordTweetPair(tweet);
+
+            // last step: collect this tweet
+            snapshot.CollectTweet(std::move(tweet));
         }
 
 		return true;

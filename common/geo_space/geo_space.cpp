@@ -44,12 +44,19 @@ namespace common::geo_space {
 				northwest_corner.latitude)) / 1e3;
 	}
 
-	std::pair<int, int> Space::GetCellIndex(double longitude, double latitude) {
+    int Space::GetCellIndex(double longitude, double latitude) {
 		Point northwest_corner = GetNorthWestCorner();
 		double col = boost::geometry::distance(point(northwest_corner.longitude, northwest_corner.latitude),
 											   point(longitude, northwest_corner.latitude)) / 1e3;
 		double row = boost::geometry::distance(point(northwest_corner.longitude, northwest_corner.latitude),
 											   point(northwest_corner.longitude, latitude)) / 1e3;
-		return std::make_pair(row / cell_size, col / cell_size);
+        int row_idx = (int)(row / cell_size);
+        int col_idx = (int)(col / cell_size);
+		return row_idx * NumOfCols() + col_idx;
 	}
+
+    double Space::Distance(Point& lhs, Point& rhs) {
+        return boost::geometry::distance(point(lhs.longitude, lhs.latitude),
+                                         point(rhs.longitude, lhs.latitude)) / 1e3;
+    }
 }

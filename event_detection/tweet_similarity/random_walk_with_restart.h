@@ -9,11 +9,13 @@
 #include <eigen3/Eigen/SparseCholesky>
 #include <memory>
 
+#include "../pre_processing/Tweet.h"
 #include "sliding_window/sliding_window.h"
 #include "co_occurrence_graph.h"
 
 using EventTweet::SlidingWindow::SnapShot;
 using EventTweet::Co_Occurrence_Graph::KeyWordGraph;
+using PreProcessing::TweetParser::Tweet;
 using Eigen::SparseMatrix;
 using Eigen::SparseVector;
 using Eigen::SimplicialLDLT;
@@ -25,11 +27,17 @@ namespace EventTweet::RWR {
     class RandomWalkWithRestart {
     private:
         double alpha;
+
         int total_iteration;
+
         int vertex_number;
+
         int vertex_index;
+
         SparseVector<double, ColMajor> relevance_score;
+
         SparseVector<double, ColMajor> restart_vector;
+
         std::shared_ptr<SparseMatrix<double, ColMajor> > adjacent_matrix_ptr;
 
     public:
@@ -41,8 +49,8 @@ namespace EventTweet::RWR {
             vertex_number = number;
             vertex_index = index;
             restart_vector.resize(vertex_number);
-            restart_vector.insert(vertex_index) = 1.0;
             relevance_score.resize(vertex_number);
+            restart_vector.insert(vertex_index) = 1.0;
             relevance_score = restart_vector;
 
             adjacent_matrix_ptr.reset();
@@ -55,11 +63,6 @@ namespace EventTweet::RWR {
 
         SparseVector<double, ColMajor>& Iterate();
     };
-
-//    class SemanticImpact {
-//    private:
-//
-//    };
 }
 
 #endif //GEOBURST_OSM_RANDOM_WALK_WITH_RESTART_H

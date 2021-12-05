@@ -35,10 +35,11 @@ namespace PreProcessing::TweetParser {
 
 		std::unordered_multiset<std::string> word_bag;
 
-		int snapshot_index = 0;
+        bool need_further_predict = false;
 
 	public:
 		Tweet() {
+            need_further_predict = false;
 			word_bag = { };
 		}
 
@@ -86,7 +87,7 @@ namespace PreProcessing::TweetParser {
 			}
 
 			this->tweet_id = std::move(std::exchange(tweet.tweet_id, ""));
-			this->tweet_id = std::move(std::exchange(tweet.user_id, ""));
+			this->user_id = std::move(std::exchange(tweet.user_id, ""));
 			this->create_time = std::move(std::exchange(tweet.create_time, ""));
             this->context = std::move(std::exchange(tweet.context, ""));
 			this->word_bag = std::move(std::exchange(tweet.word_bag, { }));
@@ -106,7 +107,7 @@ namespace PreProcessing::TweetParser {
 			this->tweet_id = std::move(std::exchange(tweet_id, ""));
 		}
 
-		const std::string GetTweetID() const {
+		const std::string& GetTweetID() const {
 			return this->tweet_id;
 		}
 
@@ -118,7 +119,7 @@ namespace PreProcessing::TweetParser {
 			this->user_id = std::move(std::exchange(user_id, ""));
 		}
 
-		const std::string GetUserID() const {
+		const std::string& GetUserID() const {
 			return this->user_id;
 		}
 
@@ -130,7 +131,7 @@ namespace PreProcessing::TweetParser {
 			this->create_time = std::move(std::exchange(create_time, ""));
 		}
 
-		const std::string GetCreateTime() const {
+		const std::string& GetCreateTime() const {
 			return this->create_time;
 		}
 
@@ -186,7 +187,7 @@ namespace PreProcessing::TweetParser {
             return ;
         }
 
-        const std::string GetContext() const {
+        const std::string& GetContext() const {
             return this->context;
         }
 
@@ -201,20 +202,20 @@ namespace PreProcessing::TweetParser {
 			if (word_bag.empty()) {
 				return;
 			}
-			this->word_bag = std::move(std::exchange(word_bag, { }));
+			this->word_bag = std::exchange(word_bag, { });
 		}
 
-		std::unordered_multiset<std::string> GetWordBag() {
+		std::unordered_multiset<std::string>& GetWordBag() {
 			return this->word_bag;
 		}
 
-		void SetSnapShotIndex(int t) {
-			this->snapshot_index = t;
-		}
+        void SetPredictFlag(bool flag) {
+            this->need_further_predict = flag;
+        }
 
-		int GetSnapShotIndex() {
-			return this->snapshot_index;
-		}
+        bool GetPredictFlag() {
+            return this->need_further_predict;
+        }
 	};
 } // end namespace PreProcessing::TweetParser
 

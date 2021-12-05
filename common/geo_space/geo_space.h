@@ -14,6 +14,7 @@ namespace common::geo_space {
 		double latitude = 0.;
 
 		Point() {}
+
 		Point(double lon, double lat) : longitude(lon), latitude(lat) {}
 	};
 
@@ -40,7 +41,7 @@ namespace common::geo_space {
 		}
 	};
 
-	// define a gepgraphical space G grouping from bounding-box
+	// define a geographical space G grouping from bounding-box
 	class Space {
 	private:
 		double cell_size = 0.; // km resolution
@@ -56,10 +57,10 @@ namespace common::geo_space {
 			: bounding_box(sc, nc){}
 
 		Space(std::vector<double>& coordinates_list, double _cell_size)
-			: bounding_box(coordinates_list), cell_size(_cell_size) {}
+			: cell_size(_cell_size), bounding_box(coordinates_list) {}
 
 		Space(Point& sc, Point& nc, double _cell_size)
-			: bounding_box(sc, nc), cell_size(_cell_size) {}
+			: cell_size(_cell_size), bounding_box(sc, nc) {}
 
 	public:
 		Point GetSouthWestCorner();
@@ -85,6 +86,18 @@ namespace common::geo_space {
 			return (int)(length * width / pow(cell_size, 2));
 		}
 
-		std::pair<int, int> GetCellIndex(double latitude, double longitude);
+        int NumOfRows() {
+            double width = GetWidth();
+            return (int)(width / cell_size);
+        }
+
+        int NumOfCols() {
+            double length = GetLength();
+            return (int)(length / cell_size);
+        }
+
+        int GetCellIndex(double longitude, double latitude);
+
+        double Distance(Point& lhs, Point& rhs);
 	};
 }

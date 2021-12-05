@@ -20,14 +20,8 @@ namespace EventTweet::SlidingWindow {
 	void SnapShot::GenerateUserTweetMap(Tweet& tweet) {
 		auto& user_tweet_map = GetUserTweetMap();
 		std::string user_id = tweet.GetUserID();
-		std::string id = tweet.GetTweetID();
-
-		if (!HasDuplicateUser(tweet)) {
-            user_tweet_map[user_id] = id;
-		} else {
-			tweet.SetTweetID(id);
-		}
-
+		std::string tweet_id = tweet.GetTweetID();
+        user_tweet_map[user_id] = tweet_id;
 		return;
 	}
 
@@ -41,18 +35,45 @@ namespace EventTweet::SlidingWindow {
 		return *bursty_words_ptr;
 	}
 
+    void SnapShot::GenerateWordIndexMap() {
+        auto& word_set = GetBurstyWords();
+        if (word_set.empty()) {
+            return ;
+        }
+
+        WordIndexMap word_index_map;
+        for (auto iter = word_set.begin(); iter != word_set.end(); ++iter) {
+            std::string word = *iter;
+            word_index_map[word] = std::distance(word_set.begin(), iter);
+        }
+
+        this->word_index_ptr.reset();
+        this->word_index_ptr = std::make_shared<WordIndexMap>(std::move(word_index_map));
+        return ;
+    }
+
 	UserTweetMap& SnapShot::GetUserTweetMap() {
 		return *user_tweet_map_ptr;
 	}
 
-	bool SnapShot::HasDuplicateUser(Tweet& tweet) {
-		auto& user_tweet_map = GetUserTweetMap();
-		std::string user_id = tweet.GetUserID();
-		if (!user_tweet_map.empty() && user_tweet_map.find(user_id) != user_tweet_map.end()) {
-			return true;
-		}
-		return false;
-	}
+    std::unordered_map<std::string, Tweet>& SnapShot::GetTweetMap() {
+        return *tweet_ptr;
+    }
+
+    std::unordered_map<std::string, Tweet>& SnapShot::GetNeedPredictTweetMap() {
+        return *tweet_need_predict_ptr;
+    }
+
+    void SnapShot::CollectTweet(Tweet&& tweet) {
+        auto& tweet_map = GetTweetMap();
+        auto& need_predict_map = GetNeedPredictTweetMap();
+        const std::string& tweet_id = tweet.GetTweetID();
+        if (tweet.GetPredictFlag()) {
+            need_predict_map[tweet_id] = tweet;
+        }
+        tweet_map[tweet_id] = std::move(tweet);
+        return ;
+    }
 
 	SnapShot& Window::GetOldest() {
 		return sliding_window.front();
@@ -62,11 +83,11 @@ namespace EventTweet::SlidingWindow {
 		return sliding_window.back();
 	}
 
-	void Window::Slide(SnapShot&& snapshot) {
+	void Window::Slide(SnapShot& snapshot) {
 		if (sliding_window.size() >= window_size) {
 			sliding_window.pop_front();
 		}
-		sliding_window.emplace_back(std::move(snapshot));
+		sliding_window.emplace_back(snapshot);
 
 		return;
 	}
