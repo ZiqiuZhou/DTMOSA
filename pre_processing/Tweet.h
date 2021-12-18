@@ -72,11 +72,11 @@ namespace PreProcessing::TweetParser {
 		}
 
 		Tweet(Tweet&& tweet) noexcept {
-			this->tweet_id = std::move(std::exchange(tweet.tweet_id, ""));
-			this->user_id = std::move(std::exchange(tweet.user_id, ""));
-			this->create_time = std::move(std::exchange(tweet.create_time, ""));
-            this->context = std::move(std::exchange(tweet.context, ""));
-			this->word_bag = std::move(std::exchange(tweet.word_bag, { }));
+			this->tweet_id = std::exchange(tweet.tweet_id, "");
+			this->user_id = std::exchange(tweet.user_id, "");
+			this->create_time = std::exchange(tweet.create_time, "");
+            this->context = std::exchange(tweet.context, "");
+			this->word_bag = std::exchange(tweet.word_bag, { });
 			this->location.longitude = std::exchange(tweet.location.longitude, 0.);
 			this->location.latitude = std::exchange(tweet.location.latitude, 0.);
 		}
@@ -86,11 +86,11 @@ namespace PreProcessing::TweetParser {
 				return *this;
 			}
 
-			this->tweet_id = std::move(std::exchange(tweet.tweet_id, ""));
-			this->user_id = std::move(std::exchange(tweet.user_id, ""));
-			this->create_time = std::move(std::exchange(tweet.create_time, ""));
-            this->context = std::move(std::exchange(tweet.context, ""));
-			this->word_bag = std::move(std::exchange(tweet.word_bag, { }));
+			this->tweet_id = std::exchange(tweet.tweet_id, "");
+			this->user_id = std::exchange(tweet.user_id, "");
+			this->create_time = std::exchange(tweet.create_time, "");
+            this->context = std::exchange(tweet.context, "");
+			this->word_bag = std::exchange(tweet.word_bag, { });
 			this->location.longitude = std::exchange(tweet.location.longitude, 0.);
 			this->location.latitude = std::exchange(tweet.location.latitude, 0.);
 
@@ -99,36 +99,36 @@ namespace PreProcessing::TweetParser {
 
 	public:
 
-		void SetTweetID(const std::string& tweet_id) {
-			this->tweet_id = tweet_id;
+        [[maybe_unused]] void SetTweetID(const std::string& _tweet_id) {
+			this->tweet_id = _tweet_id;
 		}
 
-		void SetTweetID(std::string&& tweet_id) {
-			this->tweet_id = std::move(std::exchange(tweet_id, ""));
+		void SetTweetID(std::string&& _tweet_id) {
+			this->tweet_id = std::exchange(_tweet_id, "");
 		}
 
 		const std::string& GetTweetID() const {
 			return this->tweet_id;
 		}
 
-		void SetUserID(const std::string& user_id) {
-			this->user_id = user_id;
+        [[maybe_unused]] void SetUserID(const std::string& _user_id) {
+			this->user_id = _user_id;
 		}
 
-		void SetUserID(std::string&& user_id) {
-			this->user_id = std::move(std::exchange(user_id, ""));
+		void SetUserID(std::string&& _user_id) {
+			this->user_id = std::exchange(_user_id, "");
 		}
 
 		const std::string& GetUserID() const {
 			return this->user_id;
 		}
 
-		void SetCreateTime(const std::string& create_time) {
-			this->create_time = create_time;
+        [[maybe_unused]] void SetCreateTime(const std::string& _create_time) {
+			this->create_time = _create_time;
 		}
 
-		void SetCreateTime(std::string&& create_time) {
-			this->create_time = std::move(std::exchange(create_time, ""));
+		void SetCreateTime(std::string&& _create_time) {
+			this->create_time = std::exchange(_create_time, "");
 		}
 
 		const std::string& GetCreateTime() const {
@@ -143,23 +143,23 @@ namespace PreProcessing::TweetParser {
 			this->location.latitude = latitude;
 		}
 
-		double GetLongitude() {
+		double GetLongitude() const {
 			return this->location.longitude;
 		}
 
-		double GetLatitude() {
+		double GetLatitude() const {
 			return this->location.latitude;
 		}
 
-        void SetContext(const std::string& context) {
+        void SetContext(const std::string& _context) {
             std::string http = "http";
-            std::size_t found = context.find(http);
+            std::size_t found = _context.find(http);
             if (found == std::string::npos) {
-                this->context = context;
+                this->context = _context;
             } else {
                 this->context.clear();
                 for (std::size_t i = 0; i < found; ++i) {
-                    this->context.push_back(context[i]);
+                    this->context.push_back(_context[i]);
                 }
                 if (!this->context.empty() && this->context.back() == ' ') {
                     this->context.pop_back();
@@ -169,15 +169,15 @@ namespace PreProcessing::TweetParser {
             return ;
         }
 
-        void SetContext(std::string&& context) {
+        void SetContext(std::string&& _context) {
             std::string http = "http";
-            std::size_t found = context.find(http);
+            std::size_t found = _context.find(http);
             if (found == std::string::npos) {
-                this->context = std::move(context);
+                this->context = std::move(_context);
             } else {
                 this->context.clear();
                 for (std::size_t i = 0; i < found; ++i) {
-                    this->context.push_back(context[i]);
+                    this->context.push_back(_context[i]);
                 }
                 if (!this->context.empty() && this->context.back() == ' ') {
                     this->context.pop_back();
@@ -191,18 +191,18 @@ namespace PreProcessing::TweetParser {
             return this->context;
         }
 
-		void SetWordBag(const std::unordered_multiset<std::string>& word_bag) {
-			if (word_bag.empty()) {
+		void SetWordBag(const std::unordered_multiset<std::string>& _word_bag) {
+			if (_word_bag.empty()) {
 				return;
 			}
-			this->word_bag = word_bag;
+			this->word_bag = _word_bag;
 		}
 
-		void SetWordBag(std::unordered_multiset<std::string>&& word_bag) {
-			if (word_bag.empty()) {
+		void SetWordBag(std::unordered_multiset<std::string>&& _word_bag) {
+			if (_word_bag.empty()) {
 				return;
 			}
-			this->word_bag = std::exchange(word_bag, { });
+			this->word_bag = std::exchange(_word_bag, { });
 		}
 
 		std::unordered_multiset<std::string>& GetWordBag() {
@@ -213,7 +213,7 @@ namespace PreProcessing::TweetParser {
             this->need_further_predict = flag;
         }
 
-        bool NeedPredictLocation() {
+        bool NeedPredictLocation() const {
             return this->need_further_predict;
         }
 	};

@@ -77,4 +77,16 @@ namespace common::geo_space {
         return boost::geometry::distance(point(lhs.longitude, lhs.latitude),
                                          point(rhs.longitude, lhs.latitude)) / 1e3;
     }
+
+    bool Space::ContainsPoint(Point& point) {
+        double& longitude = point.longitude;
+        double& latitude = point.latitude;
+        Point& southwest_corner = bounding_box.southwest_corner;
+        Point& northeast_corner = bounding_box.northeast_corner;
+        if (longitude >= southwest_corner.longitude && longitude <= northeast_corner.longitude &&
+            latitude >= southwest_corner.latitude && latitude <= northeast_corner.latitude) {
+            return true;
+        }
+        return false;
+    }
 }

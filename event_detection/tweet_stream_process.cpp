@@ -22,9 +22,11 @@ namespace EventTweet::TweetStream {
 		Window sliding_window(config_file_handler.GetValue("window_size", 1));
 		SnapShot snapshot(current_snapshot_index);
 
+        std::vector<double> space_bounding_box(config_file_handler.GetVector("space_Houston"));
+        Space space(space_bounding_box);
 		int const window_size = sliding_window.GetWindowSize();
 		int const history_length = history_sequence_set.GetHistoryLength();
-        int index = 0;
+
 		// iterate all tweets
         for (std::string_view line : linesInFile(std::move(fileReader))) {
 			std::string json_tweet = std::string(line);
@@ -34,6 +36,12 @@ namespace EventTweet::TweetStream {
 			}
 			json_tweet.clear();
 
+            if (!tweet.NeedPredictLocation()) {
+                Point point(tweet.GetLongitude(), tweet.GetLatitude());
+                if (space.ContainsPoint(point)) {
+                    continue;
+                }
+            }
 			std::string timestamp = tweet.GetCreateTime();
 			auto duration = ToTimeDuration(std::move(timestamp));
 			// process the entire snapshot

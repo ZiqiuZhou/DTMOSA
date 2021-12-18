@@ -6,6 +6,8 @@
 #define GEOBURST_OSM_DBSCAN_H
 
 #include <vector>
+#include <string>
+#include <unordered_set>
 #include <eigen3/Eigen/SparseCore>
 #include <eigen3/Eigen/Dense>
 
@@ -25,7 +27,10 @@ namespace EventTweet::DBSCAN {
     using DistMapType = Matrix<double, Dynamic, Dynamic, ColMajor>;
 
     struct Point {
-
+        std::string tweet_id;
+        double longitude = 0.;
+        double latitude = 0.;
+        std::unordered_multiset<std::string> word_bag;
     };
 
     class DBSCAN {
