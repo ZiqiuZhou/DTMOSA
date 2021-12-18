@@ -138,6 +138,7 @@ class LocationPredictor(object):
         self.start_time = time.time()
         self.end_time = time.time()
         self.state = 'Texas'
+        self.city = 'Houston'
         self.bounding_box = [-95.565128, 29.544661, -95.185277, 29.883392]  # Houston City
         self.width = hs.haversine((self.bounding_box[1], self.bounding_box[0]), (self.bounding_box[1], self.bounding_box[2]))
         self.height = hs.haversine((self.bounding_box[1], self.bounding_box[0]), (self.bounding_box[3], self.bounding_box[0]))
@@ -181,7 +182,7 @@ class LocationPredictor(object):
             if loc == "":
                 continue
             if tweet['has_GPE'] == False:
-                loc = loc + ", " + self.state
+                loc = loc + ", " + self.city
             location = self.request_geolocator(loc)
             if location and location.longitude and location.latitude and self.is_valid_location(location.longitude, location.latitude):
                 tweet_temp = tweet.copy()
@@ -222,7 +223,8 @@ if __name__ == "__main__":
     RAW_DATA_FILE = '/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston.json'
     FILE_PATH = '/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_after_address_net_predict.json'
     OUTPUT_FILE_PATH = '/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_after_location_prediction.json'
-    try:        
+    
+    try:       
         with open(OUTPUT_FILE_PATH, 'a+', encoding='utf-8') as output_f:
             tweet_list = []
             with open(FILE_PATH, 'r', encoding='utf-8') as f:
@@ -235,6 +237,7 @@ if __name__ == "__main__":
                     print("predict line: {}".format(line_index))
                     if not line:
                         break
+                    line = line.replace("\n", " ")
                     tweet = json.loads(line)
                     tweet['locations'].clear()
                     tweet['can_predict'] = True
@@ -245,9 +248,11 @@ if __name__ == "__main__":
                     tweets = predictor.predict(tweet)
                     if not tweets:
                         tweet['need_further_predict'] = True
+                        f_temp.write(json.dumps(tweet, ensure_ascii=False) + '\n')
                         tweet_list.append(tweet)
                     else:
                         for tweet_gen in tweets:
+                            f_temp.write(json.dumps(tweet_gen, ensure_ascii=False) + '\n')
                             tweet_list.append(tweet_gen) 
             f.close()                   
                       

@@ -10,7 +10,8 @@ add_library(event_detection SHARED
         "keyword_extraction/keyword_extraction.cpp"
         "tweet_similarity/co_occurrence_graph.cpp"
         "tweet_similarity/random_walk_with_restart.cpp"
-        "tweet_similarity/similarity_handler.cpp")
+        "tweet_similarity/similarity_handler.cpp"
+        "clustering/dbscan.cpp")
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 

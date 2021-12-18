@@ -19,9 +19,9 @@ namespace EventTweet::SlidingWindow {
 
 	void SnapShot::GenerateUserTweetMap(Tweet& tweet) {
 		auto& user_tweet_map = GetUserTweetMap();
-		std::string user_id = tweet.GetUserID();
-		std::string tweet_id = tweet.GetTweetID();
-        user_tweet_map[user_id] = tweet_id;
+		const std::string& user_id = tweet.GetUserID();
+		const std::string& tweet_id = tweet.GetTweetID();
+        user_tweet_map[user_id].insert(tweet_id);
 		return;
 	}
 
@@ -68,7 +68,7 @@ namespace EventTweet::SlidingWindow {
         auto& tweet_map = GetTweetMap();
         auto& need_predict_map = GetNeedPredictTweetMap();
         const std::string& tweet_id = tweet.GetTweetID();
-        if (tweet.GetPredictFlag()) {
+        if (tweet.NeedPredictLocation()) {
             need_predict_map[tweet_id] = tweet;
         }
         tweet_map[tweet_id] = std::move(tweet);

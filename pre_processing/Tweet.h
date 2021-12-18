@@ -213,7 +213,7 @@ namespace PreProcessing::TweetParser {
             this->need_further_predict = flag;
         }
 
-        bool GetPredictFlag() {
+        bool NeedPredictLocation() {
             return this->need_further_predict;
         }
 	};

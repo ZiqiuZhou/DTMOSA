@@ -14,7 +14,7 @@ namespace EventTweet::SlidingWindow {
 
 	using WordTweetPair = std::unordered_map<std::string, std::unordered_set<std::string> >;
 	using BurstyWords = std::unordered_set<std::string>;
-	using UserTweetMap = std::unordered_map<std::string, std::string>;
+	using UserTweetMap = std::unordered_map<std::string, std::unordered_set<std::string> >;
     using WordIndexMap = std::unordered_map<std::string, int>;
 
 	class SnapShot {

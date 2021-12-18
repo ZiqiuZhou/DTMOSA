@@ -14,7 +14,7 @@ namespace EventTweet::RWR {
 
     void RandomWalkWithRestart::InitScore() {
         SparseMatrix<double, ColMajor>& adjacent_matrix = *adjacent_matrix_ptr;
-        if (!adjacent_matrix.isVector()) {
+        if (adjacent_matrix.isVector()) {
             std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
                       << " Invalid adjacent matrix." << std::endl;
             return ;
@@ -45,7 +45,7 @@ namespace EventTweet::RWR {
     SparseVector<double, ColMajor>& RandomWalkWithRestart::Iterate() {
         int iter = 0;
         SparseMatrix<double, ColMajor>& adjacent_matrix = *adjacent_matrix_ptr;
-        if (!adjacent_matrix.isVector()) {
+        if (adjacent_matrix.isVector()) {
             std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
                       << " Invalid adjacent matrix." << std::endl;
             return relevance_score;

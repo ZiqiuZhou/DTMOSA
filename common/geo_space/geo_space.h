@@ -98,6 +98,8 @@ namespace common::geo_space {
 
         int GetCellIndex(double longitude, double latitude);
 
+        Point GetCentralLocationOfCell(int cell_index);
+
         double Distance(Point& lhs, Point& rhs);
 	};
 }

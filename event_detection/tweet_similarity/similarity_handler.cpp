@@ -60,8 +60,8 @@ namespace EventTweet::TweetSimilarity {
     TweetSimilarityHandler::TweetSimilarityHandler(SnapShot &_snapshot, ConfigFileHandler &config_file_handler)
             : textual_similarity_handler(_snapshot) {
         snapshot = _snapshot;
-        tweet_dist_map.clear();
-        tweet_neighbour_map.clear();
+        tweet_textual_dist_map.setZero();
+        tweet_spatial_dist_map.setZero();
         textual_similarity_handler.restart_probability = config_file_handler.GetValue("restart_probability", 0.);
         textual_similarity_handler.iterations = config_file_handler.GetValue("iterations", 0);
         spatial_similarity_handler.kernel_bandwidth = config_file_handler.GetValue("kernel_bandwidth", 1.0);
@@ -70,15 +70,17 @@ namespace EventTweet::TweetSimilarity {
     TweetSimilarityHandler::~TweetSimilarityHandler() {
         textual_similarity_handler.Reset();
         snapshot.Reset();
-        tweet_dist_map.clear();
-        tweet_neighbour_map.clear();
+        tweet_textual_dist_map.setZero();
+        tweet_spatial_dist_map.setZero();
     }
 
     TweetSimilarityHandler& TweetSimilarityHandler::Init() {
         textual_similarity_handler.Init();
 
         auto& tweet_map = snapshot.GetTweetMap();
-        tweet_dist_map.resize(tweet_map.size(), std::vector<TweetPair>(tweet_map.size()));
+        long SIZE = static_cast<long>(tweet_map.size());
+        tweet_textual_dist_map.resize(SIZE, SIZE);
+        tweet_spatial_dist_map.resize(SIZE, SIZE);
         return *this;
     }
 
@@ -158,13 +160,11 @@ namespace EventTweet::TweetSimilarity {
 
         WordIndexMap word_index_map_lhs = GenerateValidWordBag(tweet_lhs);
         WordIndexMap word_index_map_rhs = GenerateValidWordBag(tweet_rhs);
-        IndexWordMap inverted_word_bag_lhs = GenerateInvertedWordBag(tweet_lhs);
-        IndexWordMap inverted_word_bag_rhs = GenerateInvertedWordBag(tweet_rhs);
         if (word_index_map_lhs.empty() || word_index_map_rhs.empty()) {
             return similarity_score;
         }
-
-        std::unordered_map<std::string, TextualSimilarityScoreList>& word_scores_map = textual_similarity_handler.GetWordScoreMap();
+        IndexWordMap inverted_word_bag_lhs = GenerateInvertedWordBag(tweet_lhs);
+        IndexWordMap inverted_word_bag_rhs = GenerateInvertedWordBag(tweet_rhs);
 
         int count = 0;
         for (auto& word_index_pair: word_index_map_lhs) {
@@ -177,6 +177,7 @@ namespace EventTweet::TweetSimilarity {
             return similarity_score;
         }
 
+        std::unordered_map<std::string, TextualSimilarityScoreList>& word_scores_map = textual_similarity_handler.GetWordScoreMap();
         std::unordered_map<std::string, bool>& vertex_flag = textual_similarity_handler.GetVertexFlag();
         similarity_score = 0.;
         double score_for_tweet_left = TextualImpact(word_index_map_lhs, vertex_flag, word_scores_map,
@@ -188,76 +189,100 @@ namespace EventTweet::TweetSimilarity {
         return similarity_score;
     }
 
-    double TweetSimilarityHandler::GeographicalImpactProcess(Tweet& tweet_lhs, Tweet& tweet_rhs) {
+    double TweetSimilarityHandler::GeographicalImpactProcess(Tweet& tweet_lhs, Tweet& tweet_rhs) const {
+        double similarity_score = 0.;
+        if (tweet_lhs.NeedPredictLocation() || tweet_rhs.NeedPredictLocation()) {
+            return similarity_score;
+        }
         Space space;
         Point point1(tweet_lhs.GetLongitude(), tweet_lhs.GetLatitude());
         Point point2(tweet_rhs.GetLongitude(), tweet_rhs.GetLatitude());
         double distance = space.Distance(point1, point2);
 
-        double similarity_score = 0.;
         double bandwidth = spatial_similarity_handler.kernel_bandwidth;
         if (distance > bandwidth) {
             return similarity_score;
         } else {
             similarity_score = spatial_similarity_handler.constant * (1 - std::pow(distance, 2) / std::pow(bandwidth, 2));
         }
-        return similarity_score;
+        return 1.0 - similarity_score;
     }
 
-    TweetDistanceMap& TweetSimilarityHandler::GenerateTextualSimMap() {
-        if (tweet_dist_map.empty()) {
+    TweetSimilarityHandler& TweetSimilarityHandler::GenerateSimMap() {
+        if (tweet_textual_dist_map.isVector()) {
             std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
                       << " Invalid tweet_dist_map." << std::endl;
-            return tweet_dist_map;
+            return *this;
         }
         auto& tweet_map = snapshot.GetTweetMap();
+        std::vector<Eigen::Triplet<double>> tripleList;
         for (auto iter_i = tweet_map.begin(); iter_i != tweet_map.end(); ++iter_i) {
             std::size_t index_i = std::distance(tweet_map.begin(), iter_i);
             std::string tweet_id = (*iter_i).first;
-            tweet_dist_map[index_i][index_i] = std::make_pair(tweet_id, 0.);
+            tweet_spatial_dist_map(index_i, index_i) = 0.;
 
             auto iter_j = tweet_map.begin();
             std::advance(iter_j, index_i + 1);
             for (; iter_j != tweet_map.end(); ++iter_j) {
+                std::size_t index_j = std::distance(tweet_map.begin(), iter_j);
                 std::string tweet_id_i = (*iter_i).first;
                 Tweet tweet_lhs = (*iter_i).second;
                 std::string tweet_id_j = (*iter_j).first;
                 Tweet tweet_rhs = (*iter_j).second;
                 double textual_score = TextualImpactProcess(tweet_lhs, tweet_rhs);
-                std::size_t index_j = std::distance(tweet_map.begin(), iter_j);
-                tweet_dist_map[index_i][index_j] = std::make_pair(tweet_id_j, textual_score);
-                tweet_dist_map[index_j][index_i] = std::make_pair(tweet_id_i, textual_score);
+                double spatial_score = GeographicalImpactProcess(tweet_lhs, tweet_rhs);
+                tweet_spatial_dist_map(index_i, index_j) = spatial_score;
+                tweet_spatial_dist_map(index_j, index_i) = spatial_score;
+                if (textual_score > 1e-5) {
+                    tripleList.emplace_back(index_i, index_j, textual_score);
+                    tripleList.emplace_back(index_j, index_i, textual_score);
+                }
             }
         }
-        return tweet_dist_map;
+        tweet_textual_dist_map.setFromTriplets(tripleList.begin(), tripleList.end());
+        return *this;
     }
 
-    std::vector<std::pair<std::string, double>> TweetLocationPredictor::TopKRetrieval(std::vector<TweetPair> &element_similarities,
+    TweetTextualDistMap& TweetSimilarityHandler::GetTextualDistMap() {
+        return this->tweet_textual_dist_map;
+    }
+
+    TweetSpatialDistMap& TweetSimilarityHandler::GetSpatialDistMap() {
+        return this->tweet_spatial_dist_map;
+    }
+
+    double TweetLocationPredictor::validation_ratio = 0.1;
+
+    struct CmpTweetPair {
+        bool operator()(const TweetPair& lhs, const TweetPair& rhs) {
+            return lhs.second > rhs.second;
+        }
+    };
+
+    std::vector<TweetPair> TweetLocationPredictor::TopKRetrieval(SparseVector<double, ColMajor> &element_similarities,
                                                              std::unordered_map<std::string, Tweet> &tweet_map,
-                                                             std::unordered_map<std::string, Tweet> &tweet_need_predict) const {
-        struct CmpByValue {
-            bool operator()(const TweetPair& lhs, const TweetPair& rhs) {
-                return lhs.second > rhs.second;
-            }
-        };
-        using HeapType = std::priority_queue<TweetPair, std::vector<TweetPair>, CmpByValue>;
+                                                             std::unordered_map<std::string, Tweet> &tweet_need_predict,
+                                                             std::unordered_map<std::string, Tweet>& valid_tweet_map) const {
+        using HeapType = std::priority_queue<TweetPair, std::vector<TweetPair>, CmpTweetPair>;
         HeapType min_heap;
 
         auto iterator = tweet_map.begin();
-        for (std::size_t idx = 0; idx < element_similarities.size(); ++idx) {
-            iterator = tweet_map.begin();
+        for (Eigen::SparseVector<double, ColMajor>::InnerIterator it(element_similarities); it; ++it) {
+            std::size_t idx = it.index();
             std::advance(iterator, idx);
             std::string tweet_id = (*iterator).first;
             if (tweet_need_predict.find(tweet_id) != tweet_need_predict.end()) {
                 continue;
             }
-            min_heap.push(std::make_pair(tweet_id, element_similarities[idx].second));
-            if (min_heap.size() > top_k) {
-                min_heap.pop();
+            if (valid_tweet_map.find(tweet_id) != valid_tweet_map.end()) {
+                min_heap.push(std::make_pair(tweet_id, it.value()));
+                if (min_heap.size() > top_k) {
+                    min_heap.pop();
+                }
             }
         }
 
-        std::vector<std::pair<std::string, double>> top_k_tweets; // (tweet_id, sim_score)
+        std::vector<TweetPair> top_k_tweets; // (tweet_id, textual_sim_score)
         while (!min_heap.empty()) {
             std::string tweet_id = min_heap.top().first;
             double sim_score = min_heap.top().second;
@@ -267,54 +292,166 @@ namespace EventTweet::TweetSimilarity {
         return top_k_tweets;
     }
 
-    void TweetLocationPredictor::WeightedMajorityVoting(std::vector<std::string> &top_k_tweets,
-                                std::vector<std::pair<std::string, int>> &tweet_cell_list,
-                                std::unordered_map<int, double> &cell_indices_score,
-                                std::unordered_map<std::string, Tweet>& tweet_map) {
-        if (tweet_cell_list.size() != top_k_tweets.size()) {
-            std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
-                      << " Invalid tweet_cell_list size." << std::endl;
-            return ;
-        }
-        // assign grid index for each top-K element
-        for (std::size_t i = 0; i < top_k_tweets.size(); ++i) {
-            std::string &tweet_id = top_k_tweets[i];
-            Tweet &geo_tagged_tweet = tweet_map[tweet_id];
-            double longitude = geo_tagged_tweet.GetLongitude();
-            double latitude = geo_tagged_tweet.GetLatitude();
-            int cell_index = space.GetCellIndex(longitude, latitude);
-            tweet_cell_list[i] = std::make_pair(tweet_id, cell_index);
-            double vote = 1.0; // vote for this cell_index
+    TweetLocationPredictor &
+    TweetLocationPredictor::GenerateTrainValidationTweets(std::unordered_map<std::string, Tweet> &tweet_map) {
+        std::size_t SIZE = tweet_map.size();
+        int validation_size = static_cast<int>(SIZE * validation_ratio);
+        int train_size = SIZE - validation_size;
+        std::vector<int> random_sequence(SIZE);
+        std::iota(random_sequence.begin(), random_sequence.end(), 0);
 
+        //random generator
+        std::shuffle(random_sequence.begin(), random_sequence.end(), std::mt19937{std::random_device{}()});
+        std::unordered_set<int> validation_indices;
+        for (int i = 0; i < validation_size; ++i) {
+            validation_indices.insert(random_sequence[i]);
         }
+        for (auto iter = tweet_map.begin(); iter != tweet_map.end(); ++iter) {
+            int index = std::distance(tweet_map.begin(), iter);
+            std::string tweet_id = (*iter).first;
+            Tweet tweet = (*iter).second;
+            if (validation_indices.find(index) != validation_indices.end() && !tweet.NeedPredictLocation()) {
+                tweet_validation_map[tweet_id] = tweet;
+            } else {
+                tweet_train_map[tweet_id] = tweet;
+            }
+        }
+        return *this;
     }
 
-    void TweetLocationPredictor::LocationPredict(TweetSimilarityHandler& tweet_similarity_handler) {
+    TweetLocationPredictor &
+    TweetLocationPredictor::FindTextualSimilarTweetsForValidationMap(TweetSimilarityHandler &tweet_similarity_handler) {
+        SnapShot& snapshot = tweet_similarity_handler.snapshot;
+        auto& tweet_map = snapshot.GetTweetMap();
+        auto& tweets_need_predict = snapshot.GetNeedPredictTweetMap();
+
+        SparseVector<double, ColMajor> element_similarities;
+        element_similarities.resize(tweet_map.size());
+        for (auto& tweet_info: tweet_validation_map) {
+            element_similarities.setZero();
+            const std::string& validation_tweet_id = tweet_info.first;
+            Tweet& validation_tweet = tweet_info.second;
+
+            std::unordered_set<std::string> similar_tweet_ids = {};
+            const auto& iterator = tweet_map.find(validation_tweet_id);
+            if (iterator == tweet_map.end()) {
+                continue;
+            }
+            std::size_t index = std::distance(tweet_map.begin(), iterator);
+            element_similarities = tweet_similarity_handler.tweet_textual_dist_map.col(index);
+            std::vector<TweetPair> top_k_tweets = TopKRetrieval(element_similarities, tweet_map, tweets_need_predict,
+                                                                tweet_map);
+            if (top_k_tweets.empty()) {
+                continue;
+            }
+            for (TweetPair& tweet_pair: top_k_tweets) {
+                std::string tweet_id = tweet_pair.first;
+                similar_tweet_ids.insert(std::move(tweet_id));
+            }
+            similar_tweets_for_validation.emplace_back(std::make_pair(validation_tweet_id, similar_tweet_ids));
+            top_k_tweets.clear();
+            similar_tweet_ids.clear();
+        }
+        return *this;
+    }
+
+    int TweetLocationPredictor::WeightedMajorityVoting(std::vector<TweetPair> &top_k_tweets,
+                                std::unordered_map<int, double> &cell_indices_score,
+                                std::unordered_map<std::string, Tweet>& tweet_map,
+                                SnapShot& snapshot) {
+        UserTweetMap& user_tweet_map = snapshot.GetUserTweetMap();
+        for (std::size_t i = 0; i < top_k_tweets.size(); ++i) {
+            std::string &geo_tagged_tweet_id = top_k_tweets[i].first;
+            double textual_sim_score = top_k_tweets[i].second;
+            Tweet &geo_tagged_tweet = tweet_map[geo_tagged_tweet_id];
+            double longitude = geo_tagged_tweet.GetLongitude();
+            double latitude = geo_tagged_tweet.GetLatitude();
+            int cell_index = space.GetCellIndex(longitude, latitude); // get grid index for each top-K element
+            double vote = 1.0; // vote for this cell_index
+
+            // compute credibility of geo_tagged_tweet's user
+            double credibility = 0.;
+            int count = 0;
+            int valid_count = 0;
+            const std::string& user_id = geo_tagged_tweet.GetUserID();
+            if (user_tweet_map.find(user_id) != user_tweet_map.end()) {
+                std::unordered_set<std::string>& tweet_set = user_tweet_map[user_id];
+                for (auto& tweet_id: tweet_set) {
+                    Tweet& tweet1 = tweet_map[tweet_id];
+                    if (tweet1.NeedPredictLocation()) {
+                        continue;
+                    }
+                    for (auto& validation_tweet_sim_set: similar_tweets_for_validation) {
+                        std::string& validation_tweet_id = validation_tweet_sim_set.first;
+                        std::unordered_set<std::string>& sim_tweets = validation_tweet_sim_set.second;
+                        if (sim_tweets.find(tweet_id) != sim_tweets.end()) {
+                            count++;
+                            Tweet& tweet2 = tweet_map[validation_tweet_id];
+                            Point point1(tweet1.GetLongitude(), tweet1.GetLatitude());
+                            Point point2(tweet2.GetLongitude(), tweet2.GetLatitude());
+                            double distance = space.Distance(point1, point2);
+                            if (distance <= 1.) {
+                                valid_count++;
+                            }
+                        }
+                    }
+                }
+            }
+            if (count > 0) {
+                credibility = (double)(valid_count / count);
+            }
+            double weight = credibility * alpha + textual_sim_score * (1.0 - alpha);
+            cell_indices_score[cell_index] += vote * weight; // weighted vote score
+        }
+
+        auto pos = std::max_element(cell_indices_score.begin(), cell_indices_score.end(),
+                         [](const std::pair<int, double> &lhs, const std::pair<int, double> &rhs) {
+                             return lhs.second < rhs.second;
+                         });
+        return (*pos).first;
+    }
+
+    void TweetLocationPredictor::Predict(TweetSimilarityHandler& tweet_similarity_handler) {
         SnapShot& snapshot = tweet_similarity_handler.snapshot;
         auto& tweet_map = snapshot.GetTweetMap();
         auto& tweets_need_predict = snapshot.GetNeedPredictTweetMap();
         if (tweets_need_predict.empty()) {
             std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
-                      << " Invalid tweet_need_predict." << std::endl;
+                      << " No tweet needs location prediction." << std::endl;
             return ;
         }
 
+        GenerateTrainValidationTweets(tweet_map); // split tweet_map into train / validation parts
+        FindTextualSimilarTweetsForValidationMap(tweet_similarity_handler);
+
+        SparseVector<double, ColMajor> element_similarities;
         for (auto iter = tweets_need_predict.begin(); iter != tweets_need_predict.end(); ++iter) {
+            element_similarities.setZero();
+            element_similarities.resize(tweet_map.size());
             Tweet& tweet_predict = (*iter).second;
-            auto iterator = tweet_map.find(tweet_predict.GetTweetID());
+            const auto& iterator = tweet_map.find(tweet_predict.GetTweetID());
             if (iterator == tweet_map.end()) {
                 continue;
             }
             std::size_t index = std::distance(tweet_map.begin(), iterator);
             // get all tweets' textual similarities towards the candidate one
-            std::vector<TweetPair>& element_similarities = tweet_similarity_handler.tweet_dist_map[index];
-            std::vector<std::pair<std::string, double>> top_k_tweets = TopKRetrieval(element_similarities, tweet_map, tweets_need_predict);
+            element_similarities = tweet_similarity_handler.tweet_textual_dist_map.col(index);
+            std::vector<TweetPair> top_k_tweets = TopKRetrieval(element_similarities, tweet_map, tweets_need_predict,
+                                                                tweet_train_map);
+            Tweet& tweet = (*iterator).second;
             if (top_k_tweets.empty()) {
+                // assign coordinates to city center
+                tweet.SetLongitude((space_bounding_box[0] + space_bounding_box[2]) / 2);
+                tweet.SetLatitude((space_bounding_box[1] + space_bounding_box[3]) / 2);
                 continue;
             }
-            std::vector<std::pair<std::string, int>> tweet_cell_list(top_k_tweets.size()); // (tweet_id, cell_index)
             std::unordered_map<int, double> cell_indices_score = {}; // key: grid_index, value: weighted vote score
-
+            // compute grid index for predict_tweet
+            int grid_index = WeightedMajorityVoting(top_k_tweets, cell_indices_score, tweet_map, snapshot);
+            Point point = space.GetCentralLocationOfCell(grid_index);
+            tweet.SetLongitude(point.longitude);
+            tweet.SetLatitude(point.latitude);
         }
+        return ;
     }
 }
