@@ -43,7 +43,10 @@ def location_prediction(FILE_PATH="", OUTPUT_FILE_PATH=""):
                 tweet = json.loads(line)
                 if tweet.get('has_address_name') != None and tweet['has_address_name'] == True:
                     address_location_list = parse_address_location(tweet['locations'])
-                    tweet['loc_address'] = address_location_list
+                    if not address_location_list:
+                        tweet['loc_address'] = []
+                    else:
+                        tweet['loc_address'] = address_location_list
                     
                 output_f.write(json.dumps(tweet, ensure_ascii=False) + '\n')
                 

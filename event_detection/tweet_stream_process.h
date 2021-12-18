@@ -29,7 +29,7 @@ using EventTweet::SlidingWindow::Window;
 using EventTweet::KeywordExtraction::HistorySequenceSet;
 using EventTweet::KeywordExtraction::WordUsageBaseline;
 using EventTweet::TweetSimilarity::TweetSimilarityHandler;
-using EventTweet::TweetSimilarity::TweetDistanceMap;
+using EventTweet::TweetSimilarity::TweetLocationPredictor;
 
 namespace EventTweet::TweetStream {
 

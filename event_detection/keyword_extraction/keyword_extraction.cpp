@@ -2,6 +2,8 @@
 
 namespace EventTweet::KeywordExtraction {
 
+    const static int occurrence_frequency = 5;
+
 	double WordUsageBaseline::GetMean() {
 		if (usage_history.empty()) {
 			return 0.;
@@ -81,20 +83,15 @@ namespace EventTweet::KeywordExtraction {
 		for (auto iter = word_tweet_pair.begin(); iter != word_tweet_pair.end(); ++iter) {
 			std::string word = (*iter).first;
 			const std::unordered_set<std::string>& tweetID_set = (*iter).second;
-            if (tweetID_set.size() >= 10) {
+            if (tweetID_set.size() >= occurrence_frequency) {
                 bursty_word_set.insert(std::move(word));
+            } else if (Contains(word)) {
+                WordUsageBaseline& word_baseline = words_history[word];
+                int num_occurrence = tweetID_set.size();
+                if ((num_occurrence - word_baseline.GetMean()) / word_baseline.GetStandardDeviation() < 1.) {
+                    bursty_word_set.insert(std::move(word));
+                }
             }
-//			if (Contains(word)) {
-//				WordUsageBaseline& word_baseline = words_history[word];
-//				int num_occurrence = tweetID_set.size();
-//				if ((num_occurrence - word_baseline.GetMean()) / word_baseline.GetStandardDeviation() < 2) {
-//					bursty_word_set.insert(std::move(word));
-//				}
-//			} else {
-//				if (tweetID_set.size() >= 5) {
-//					bursty_word_set.insert(std::move(word));
-//				}
-//			}
 		}
 
         if(bursty_word_set.empty()) {

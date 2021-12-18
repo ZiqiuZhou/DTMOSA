@@ -1,6 +1,5 @@
 #include <iostream>
 #include <eigen3/Eigen/SparseCore>
-#include <eigen3/Eigen/SparseCholesky>
 #include "include/rapidjson/document.h"
 #include "common/file_io/lines.h"
 #include "common/config_handler/config_handler.h"
@@ -8,7 +7,7 @@
 #include "pre_processing/Tweet.h"
 #include "pre_processing/crawled_data_parser.h"
 #include "event_detection/tweet_stream_process.h"
-#include "event_detection/tweet_similarity/similarity_handler.h"
+//#include "event_detection/tweet_similarity/similarity_handler.h"
 
 using common::file_io::FileReader;
 using common::file_io::FileMode;
@@ -51,7 +50,25 @@ int main() {
     }
 
     std::cout << boost::geometry::distance(point(-95.565128, 29.544661),
-                              point(-95.185277, 29.883392)) / 1e3;
+                              point(-95.185277, 29.883392)) / 1e3 << std::endl;
+
+    std::vector<Eigen::Triplet<double>> tripleList;
+    tripleList.emplace_back(0, 0, 1.);
+    tripleList.emplace_back(1, 1, 1.);
+    Eigen::SparseMatrix<double, ColMajor> mat1(5, 5);
+    mat1.setFromTriplets(tripleList.begin(), tripleList.end());
+    std::vector<Eigen::Triplet<double>> tripleList1;
+    tripleList1.emplace_back(2, 2, 1.);
+    Eigen::SparseMatrix<double, ColMajor> mat2(5, 5);
+    mat2.setFromTriplets(tripleList1.begin(), tripleList1.end());
+    SparseMatrix<double> mat3 = mat1 + mat2;
+    for (int k=0; k<mat3.outerSize(); ++k) {
+        for (SparseMatrix<double>::InnerIterator it(mat3,k); it; ++it)
+        {
+            std::cout << it.value() << " " << it.row() << " " << it.col() << std::endl;   // col index (here it is equal to k)
+        }
+    }
+
 
     return 0;
 }

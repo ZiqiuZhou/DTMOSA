@@ -53,11 +53,14 @@ namespace EventTweet::TweetStream {
                         continue;
                     }
                     snapshot.SetBurstyWords(std::move(bursty_word_set));
+
                     // compute tweet similarity and predict location
                     snapshot.GenerateWordIndexMap();
                     TweetSimilarityHandler similarity_handler(snapshot, config_file_handler);
-                    similarity_handler.Init();
-                    TweetDistanceMap& tweet_dist_map = similarity_handler.GenerateTextualSimMap();
+                    similarity_handler.Init()
+                                      .GenerateSimMap();
+                    TweetLocationPredictor location_predictor(config_file_handler);
+                    location_predictor.Predict(similarity_handler);
                 }
 				// trigger sliding window to slide
 				sliding_window.Slide(snapshot);

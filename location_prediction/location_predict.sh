@@ -1,6 +1,6 @@
 #!/bin/sh
 
-java -Dclasspath=./lib -cp stanford-ner.jar edu.stanford.nlp.ie.NERServer -port 9199 -loadClassifier /home/dietrich/stanford-ner-4.2.0/stanford-ner-2020-11-17/classifiers/english.all.3class.distsim.crf.ser.gz
+java -Dclasspath=./lib -cp /home/dietrich/stanford-ner-4.2.0/stanford-ner-2020-11-17/stanford-ner.jar edu.stanford.nlp.ie.NERServer -port 9199 -loadClassifier /home/dietrich/stanford-ner-4.2.0/stanford-ner-2020-11-17/classifiers/english.all.3class.distsim.crf.ser.gz
 
 loc_file="/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_need_predict_loc.json"
 loc_file_after_NER="/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_after_NER_predict.json"
