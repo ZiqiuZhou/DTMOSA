@@ -103,6 +103,12 @@ namespace EventTweet::TweetSimilarity {
 
         TweetSpatialDistMap tweet_spatial_dist_map;
 
+        // both element are (tweet_id, index in dist_map)
+        using BlankPositionPair = std::pair<std::pair<std::string, int>, std::pair<std::string, int>>;
+        std::vector<BlankPositionPair> blank_position_list;
+        // record which position in spatial_dist_map need to be recomputed
+        std::unordered_set<std::string> blank_position_id;
+
     public:
         TweetSimilarityHandler(SnapShot &snapshot, ConfigFileHandler& config_file_handler);
 
@@ -156,6 +162,13 @@ namespace EventTweet::TweetSimilarity {
 
     public:
         TweetLocationPredictor() {
+            space_bounding_box.clear();
+            tweet_train_map.clear();
+            tweet_validation_map.clear();
+            similar_tweets_for_validation.clear();
+        }
+
+        ~TweetLocationPredictor() {
             space_bounding_box.clear();
             tweet_train_map.clear();
             tweet_validation_map.clear();
