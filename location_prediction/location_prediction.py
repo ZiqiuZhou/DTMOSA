@@ -247,6 +247,7 @@ if __name__ == "__main__":
                         continue
                     tweets = predictor.predict(tweet)
                     if not tweets:
+                        # need more filters to reducre predict numbers
                         tweet['need_further_predict'] = True
                         f_temp.write(json.dumps(tweet, ensure_ascii=False) + '\n')
                         tweet_list.append(tweet)
