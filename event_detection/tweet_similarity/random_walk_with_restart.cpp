@@ -58,6 +58,7 @@ namespace EventTweet::RWR {
 
         while (iter < total_iteration) {
             relevance_score = alpha * adjacent_matrix * relevance_score + (1. - alpha) * restart_vector;
+            ++iter;
         }
         return relevance_score;
     }

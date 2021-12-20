@@ -1,5 +1,6 @@
 #include <iostream>
 #include <eigen3/Eigen/SparseCore>
+#include <eigen3/Eigen/Dense>
 #include "include/rapidjson/document.h"
 #include "common/file_io/lines.h"
 #include "common/config_handler/config_handler.h"
@@ -69,6 +70,11 @@ int main() {
         }
     }
 
-
+    Matrix<double, 2, 2> m;
+    m(0,0) = 3;
+    m(1,0) = 2.5;
+    m(0,1) = -1;
+    m(1,1) = m(1,0) + m(0,1);
+    std::cout << m(1, 1) << m.cols();
     return 0;
 }

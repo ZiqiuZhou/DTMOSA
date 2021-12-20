@@ -11,6 +11,7 @@
 #include "sliding_window/sliding_window.h"
 #include "keyword_extraction/keyword_extraction.h"
 #include "tweet_similarity/similarity_handler.h"
+#include "clustering/dbscan.h"
 
 using PreProcessing::TweetParser::Tweet;
 using PreProcessing::JsonParser::DataParser;
@@ -33,6 +34,7 @@ using EventTweet::KeywordExtraction::HistorySequenceSet;
 using EventTweet::KeywordExtraction::WordUsageBaseline;
 using EventTweet::TweetSimilarity::TweetSimilarityHandler;
 using EventTweet::TweetSimilarity::TweetLocationPredictor;
+using EventTweet::Clustering::DBSCAN;
 
 namespace EventTweet::TweetStream {
 
