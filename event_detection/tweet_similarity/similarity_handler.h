@@ -48,6 +48,8 @@ namespace EventTweet::TweetSimilarity {
     using TextualSimilarityScoreList = SparseVector<double, ColMajor>;
     using TweetTextualDistMap = SparseMatrix<double, ColMajor>;
     using TweetSpatialDistMap = Matrix<double, Dynamic, Dynamic, ColMajor>;
+    // both element are (tweet_id, index in dist_map)
+    using BlankPositionPair = std::pair<std::pair<std::string, int>, std::pair<std::string, int>>;
 
     class SpatialSimilarityHandler {
     public:
@@ -103,11 +105,13 @@ namespace EventTweet::TweetSimilarity {
 
         TweetSpatialDistMap tweet_spatial_dist_map;
 
-        // both element are (tweet_id, index in dist_map)
-        using BlankPositionPair = std::pair<std::pair<std::string, int>, std::pair<std::string, int>>;
         std::vector<BlankPositionPair> blank_position_list;
+
         // record which position in spatial_dist_map need to be recomputed
         std::unordered_set<std::string> blank_position_id;
+
+        // (tweet_id, index) record index of a tweet in dist_map
+        std::unordered_map<std::string, int> tweet_position_map;
 
     public:
         TweetSimilarityHandler(SnapShot &snapshot, ConfigFileHandler& config_file_handler);
@@ -134,6 +138,8 @@ namespace EventTweet::TweetSimilarity {
         TweetTextualDistMap& GetTextualDistMap();
 
         TweetSpatialDistMap& GetSpatialDistMap();
+
+        std::unordered_map<std::string, int>& GetTweetPositionMap();
 
     public:
         friend class TweetLocationPredictor;

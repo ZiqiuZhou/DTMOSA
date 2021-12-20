@@ -36,7 +36,6 @@ namespace EventTweet::Co_Occurrence_Graph {
         auto& bursty_words_set = snapshot.GetBurstyWords();
         for (const std::string& word : bursty_words_set) {
             auto vertex = Vertex(word);
-            auto a  = vertex.GetVertex();
             vertex_list.emplace_back(std::move(vertex));
         }
         return *this;

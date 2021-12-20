@@ -38,7 +38,7 @@ namespace EventTweet::TweetStream {
 
             if (!tweet.NeedPredictLocation()) {
                 Point point(tweet.GetLongitude(), tweet.GetLatitude());
-                if (space.ContainsPoint(point)) {
+                if (!space.ContainsPoint(point)) {
                     continue;
                 }
             }
@@ -61,7 +61,8 @@ namespace EventTweet::TweetStream {
                         continue;
                     }
                     snapshot.SetBurstyWords(std::move(bursty_word_set));
-
+                    int length = snapshot.GetBurstyWords().size();
+                    int len = snapshot.GetTweetMap().size();
                     // compute tweet similarity and predict location
                     snapshot.GenerateWordIndexMap();
                     TweetSimilarityHandler similarity_handler(snapshot, config_file_handler);
@@ -69,6 +70,10 @@ namespace EventTweet::TweetStream {
                                       .GenerateSimMap();
                     TweetLocationPredictor location_predictor(config_file_handler);
                     location_predictor.Predict(similarity_handler);
+
+                    // clustering
+                    DBSCAN dbscan(snapshot, similarity_handler, config_file_handler);
+                    dbscan.Cluster();
                 }
 				// trigger sliding window to slide
 				sliding_window.Slide(snapshot);
@@ -79,8 +84,7 @@ namespace EventTweet::TweetStream {
 				snapshot.SetIndex(current_snapshot_index);
 				int step = duration / time_interval;
 				start_time += seconds(step * time_interval);
-			} 
-
+			}
 			snapshot.GenerateUserTweetMap(tweet);
 			snapshot.GenerateWordTweetPair(tweet);
 

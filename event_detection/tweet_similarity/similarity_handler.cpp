@@ -64,6 +64,7 @@ namespace EventTweet::TweetSimilarity {
         tweet_spatial_dist_map.setZero();
         blank_position_list = {};
         blank_position_id = {};
+        tweet_position_map = {};
         textual_similarity_handler.restart_probability = config_file_handler.GetValue("restart_probability", 0.);
         textual_similarity_handler.iterations = config_file_handler.GetValue("iterations", 0);
         spatial_similarity_handler.kernel_bandwidth = config_file_handler.GetValue("kernel_bandwidth", 1.0);
@@ -76,6 +77,7 @@ namespace EventTweet::TweetSimilarity {
         tweet_spatial_dist_map.setZero();
         blank_position_list.clear();
         blank_position_id.clear();
+        tweet_position_map.clear();
     }
 
     TweetSimilarityHandler& TweetSimilarityHandler::Init() {
@@ -129,7 +131,7 @@ namespace EventTweet::TweetSimilarity {
         for (auto& vertex : word_index_map) {
             std::string word = vertex.first;
             int vertex_index = vertex.second;
-            if (vertex_flag.find(word) != vertex_flag.end()) {
+            if (vertex_flag.find(word) == vertex_flag.end()) {
                 continue;
             }
             if (!vertex_flag[word]) {
@@ -221,6 +223,7 @@ namespace EventTweet::TweetSimilarity {
         for (auto iter_i = tweet_map.begin(); iter_i != tweet_map.end(); ++iter_i) {
             std::size_t index_i = std::distance(tweet_map.begin(), iter_i);
             std::string tweet_id = (*iter_i).first;
+            tweet_position_map[tweet_id] = index_i;
             tweet_spatial_dist_map(index_i, index_i) = 0.;
 
             auto iter_j = tweet_map.begin();
@@ -268,6 +271,11 @@ namespace EventTweet::TweetSimilarity {
         return this->tweet_spatial_dist_map;
     }
 
+    std::unordered_map<std::string, int>& TweetSimilarityHandler::GetTweetPositionMap() {
+        return this->tweet_position_map;
+    }
+
+
     double TweetLocationPredictor::validation_ratio = 0.1;
 
     struct CmpTweetPair {
@@ -285,6 +293,7 @@ namespace EventTweet::TweetSimilarity {
 
         auto iterator = tweet_map.begin();
         for (Eigen::SparseVector<double, ColMajor>::InnerIterator it(element_similarities); it; ++it) {
+            iterator = tweet_map.begin();
             std::size_t idx = it.index();
             std::advance(iterator, idx);
             std::string tweet_id = (*iterator).first;

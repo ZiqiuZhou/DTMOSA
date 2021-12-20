@@ -37,6 +37,8 @@ namespace PreProcessing::TweetParser {
 
         bool need_further_predict = false;
 
+        int index = 0;
+
 	public:
 		Tweet() {
             need_further_predict = false;
@@ -59,6 +61,7 @@ namespace PreProcessing::TweetParser {
 			this->word_bag = tweet.word_bag;
 			this->location.longitude = tweet.location.longitude;
 			this->location.latitude = tweet.location.latitude;
+			this->need_further_predict = tweet.need_further_predict;
 		}
 
 		Tweet& operator= (const Tweet& tweet) {
@@ -79,6 +82,7 @@ namespace PreProcessing::TweetParser {
 			this->word_bag = std::exchange(tweet.word_bag, { });
 			this->location.longitude = std::exchange(tweet.location.longitude, 0.);
 			this->location.latitude = std::exchange(tweet.location.latitude, 0.);
+			this->need_further_predict = std::exchange(tweet.need_further_predict, false);
 		}
 
 		Tweet& operator= (Tweet&& tweet) noexcept {
@@ -93,6 +97,7 @@ namespace PreProcessing::TweetParser {
 			this->word_bag = std::exchange(tweet.word_bag, { });
 			this->location.longitude = std::exchange(tweet.location.longitude, 0.);
 			this->location.latitude = std::exchange(tweet.location.latitude, 0.);
+			this->need_further_predict = std::exchange(tweet.need_further_predict, false);
 
 			return *this;
 		}
@@ -215,6 +220,14 @@ namespace PreProcessing::TweetParser {
 
         bool NeedPredictLocation() const {
             return this->need_further_predict;
+        }
+
+        void SetIndex(int _index) {
+            this->index = _index;
+        }
+
+        int GetIndex() const {
+            return this->index;
         }
 	};
 } // end namespace PreProcessing::TweetParser

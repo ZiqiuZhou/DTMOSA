@@ -26,7 +26,7 @@ using Eigen::ColMajor;
 using Eigen::RowMajor;
 using Eigen::Dynamic;
 
-namespace EventTweet::DBSCAN {
+namespace EventTweet::Clustering {
 
     using DistMapType = Matrix<double, Dynamic, Dynamic, ColMajor>;
 
@@ -39,8 +39,7 @@ namespace EventTweet::DBSCAN {
         BORDER_POINT
     };
 
-    class Point {
-    public:
+    struct Point {
         std::string tweet_id;
 
         double longitude = 0.;
@@ -51,7 +50,6 @@ namespace EventTweet::DBSCAN {
 
         std::unordered_multiset<std::string> word_bag;
 
-    public:
         Point() {
             word_bag = {};
         }
@@ -82,6 +80,8 @@ namespace EventTweet::DBSCAN {
 
         std::vector<Point> points;
 
+        std::unordered_map<std::string, int> tweet_position_map;
+
         SnapShot snapshot;
 
     public:
@@ -99,7 +99,7 @@ namespace EventTweet::DBSCAN {
 
         int ExpandCluster(Point& point, int cluster_id);
 
-        std::vector<int> CalculateCluster(Point& point);
+        std::vector<int> CalculateCluster(Point& point_lhs);
 
         double CalculateDistance(const Point& point_lhs, const Point& point_rhs);
     };
