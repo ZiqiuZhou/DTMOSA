@@ -76,7 +76,9 @@ namespace EventTweet::TweetStream {
 
                     // clustering
                     DBSCAN dbscan(snapshot, similarity_handler, config_file_handler);
-                    dbscan.Cluster();
+                    if (dbscan.Cluster() == 0) {
+                        std::cout << "s";
+                    }
                 }
 				// trigger sliding window to slide
 				sliding_window.Slide(snapshot);

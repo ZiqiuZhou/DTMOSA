@@ -13,7 +13,7 @@ namespace EventTweet::Clustering {
         dist_map = 0.5 * spatial_map;
         dist_map += (0.5 * textual_map * bandwidth);
         minimum_points = config_file_handler.GetValue("minimum_points", 10);
-        epsilon = config_file_handler.GetValue("epsilon", 10.0);
+        epsilon = config_file_handler.GetValue("epsilon", 0.5);
 
         auto& tweet_map = snapshot.GetTweetMap();
         for (auto& tweet_kv: tweet_map) {
