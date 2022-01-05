@@ -86,7 +86,31 @@ namespace common::geo_space {
         if (longitude >= southwest_corner.longitude && longitude <= northeast_corner.longitude &&
             latitude >= southwest_corner.latitude && latitude <= northeast_corner.latitude) {
             return true;
+        } else {
+            double width = GetWidth();
+            double length = GetLength();
+            double centroid_longitude =
+                    (bounding_box.southwest_corner.longitude + bounding_box.northeast_corner.longitude) / 2.;
+            double centroid_latitude =
+                    (bounding_box.southwest_corner.latitude + bounding_box.northeast_corner.latitude) / 2.;
+            Point centroid(centroid_longitude, centroid_latitude);
+            if (Distance(centroid, point) < sqrt(std::pow(2 * width, 2) + std::pow(2 * length, 2))) {
+                return true;
+            }
         }
         return false;
+    }
+
+    Point Space::ReGenerateCoordinates(Point& point) {
+        double centroid_lon = point.longitude;
+        double centroid_lat = point.latitude;
+
+        std::mt19937 random_generator{std::random_device{}()};
+        std::uniform_real_distribution<double> random_number{0., 1.};
+        double distance = RADIUS * sqrt(random_number(random_generator));
+        double theta = random_number(random_generator) * (2 * M_PI);
+        double new_lon = distance * cos(theta) + centroid_lon;
+        double new_lat = distance * sin(theta) + centroid_lat;
+        return Point{new_lon, new_lat};
     }
 }
