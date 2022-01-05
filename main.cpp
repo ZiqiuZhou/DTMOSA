@@ -44,7 +44,7 @@ int main() {
     std::cout << point4.longitude << " " << point4.latitude << std::endl;
 
     TweetStreamProcess process(config_file_handler);
-    //process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
+    process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
     std::cout << "finished" << std::endl;
 
 //    Eigen::SparseVector<double> vec(10);

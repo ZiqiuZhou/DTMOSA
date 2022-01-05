@@ -99,7 +99,7 @@ namespace EventTweet::TweetSimilarity {
 
         SpatialSimilarityHandler spatial_similarity_handler;
 
-        SnapShot snapshot;
+        SnapShot& snapshot;
 
         TweetTextualDistMap tweet_textual_dist_map;
 
