@@ -23,7 +23,7 @@ namespace EventTweet::TweetStream {
 		SnapShot snapshot(current_snapshot_index);
 
         std::vector<double> space_bounding_box(config_file_handler.GetVector("space_Houston"));
-        Space space(space_bounding_box);
+        Space space(space_bounding_box, 1.0);
 		int const window_size = sliding_window.GetWindowSize();
 		int const history_length = history_sequence_set.GetHistoryLength();
 
@@ -41,7 +41,11 @@ namespace EventTweet::TweetStream {
                 if (!space.ContainsPoint(point)) {
                     continue;
                 }
+                Point new_point = space.ReGenerateCoordinates(point);
+                tweet.SetLongitude(new_point.longitude);
+                tweet.SetLatitude(new_point.latitude);
             }
+
 			std::string timestamp = tweet.GetCreateTime();
 			auto duration = ToTimeDuration(std::move(timestamp));
 			// process the entire snapshot
@@ -61,8 +65,6 @@ namespace EventTweet::TweetStream {
                         continue;
                     }
                     snapshot.SetBurstyWords(std::move(bursty_word_set));
-                    int length = snapshot.GetBurstyWords().size();
-                    int len = snapshot.GetTweetMap().size();
                     // compute tweet similarity and predict location
                     snapshot.GenerateWordIndexMap();
                     TweetSimilarityHandler similarity_handler(snapshot, config_file_handler);

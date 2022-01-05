@@ -145,7 +145,7 @@ class LocationPredictor(object):
         
     def request_geolocator(self, loc_str):
         self.start_time = time.time()
-        location = self.geolocator.geocode(loc_str, timeout=None)
+        location = self.geolocator.geocode(loc_str, timeout=None, exactly_one=True)
         self.end_time = time.time()  
         if self.end_time - self.start_time < self.request_rate:
             time.sleep(self.request_rate - (self.end_time - self.start_time))         
@@ -181,10 +181,8 @@ class LocationPredictor(object):
         for i, loc in enumerate(tweet['locations']):
             if loc == "":
                 continue
-            if tweet['has_GPE'] == False:
-                loc = loc + ", " + self.city
             location = self.request_geolocator(loc)
-            if location and location.longitude and location.latitude and self.is_valid_location(location.longitude, location.latitude):
+            if location and location.longitude and location.latitude:
                 tweet_temp = tweet.copy()
                 tweet_temp["tweet_id"] = tweet["tweet_id"] + str(i)
                 tweet_temp["longitude"] = location.longitude
@@ -223,6 +221,7 @@ if __name__ == "__main__":
     RAW_DATA_FILE = '/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston.json'
     FILE_PATH = '/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_after_address_net_predict.json'
     OUTPUT_FILE_PATH = '/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_after_location_prediction.json'
+    #output_file_temp = '/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_list.json'
     
     try:       
         with open(OUTPUT_FILE_PATH, 'a+', encoding='utf-8') as output_f:
@@ -249,12 +248,13 @@ if __name__ == "__main__":
                     if not tweets:
                         # need more filters to reducre predict numbers
                         tweet['need_further_predict'] = True
-                        f_temp.write(json.dumps(tweet, ensure_ascii=False) + '\n')
+                        #f_temp.write(json.dumps(tweet, ensure_ascii=False) + '\n')
                         tweet_list.append(tweet)
                     else:
                         for tweet_gen in tweets:
-                            f_temp.write(json.dumps(tweet_gen, ensure_ascii=False) + '\n')
-                            tweet_list.append(tweet_gen) 
+                            if predictor.is_valid_location(tweet_gen["longitude"], tweet_gen["latitude"]):
+                                #f_temp.write(json.dumps(tweet_gen, ensure_ascii=False) + '\n')
+                                tweet_list.append(tweet_gen) 
             f.close()                   
                       
             f = open(RAW_DATA_FILE, 'r', encoding='utf-8')

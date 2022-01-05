@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <cmath>
+#include <random>
+#include <utility>
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
 
@@ -9,13 +11,44 @@ using point = boost::geometry::model::point<double, 2, boost::geometry::cs::geog
 
 namespace common::geo_space {
 
-	struct Point {
+    const double RADIUS = 0.05;
+
+	class Point {
+    public:
 		double longitude = 0.;
 		double latitude = 0.;
 
 		Point() {}
 
 		Point(double lon, double lat) : longitude(lon), latitude(lat) {}
+
+        Point(const Point& _point) {
+            this->longitude = _point.longitude;
+            this->latitude = _point.latitude;
+        }
+
+        Point& operator=(const Point& _point) {
+            if (this == &_point) {
+                return *this;
+            }
+            Point temp_point = _point;
+            std::swap(*this, temp_point);
+            return *this;
+        }
+
+        Point(Point&& _point) noexcept {
+            this->longitude = std::exchange(_point.longitude, 0.);
+            this->latitude = std::exchange(_point.latitude, 0.);
+        }
+
+        Point& operator=(Point&& _point) noexcept {
+            if (this == &_point) {
+                return *this;
+            }
+            this->longitude = std::exchange(_point.longitude, 0.);
+            this->latitude = std::exchange(_point.latitude, 0.);
+            return *this;
+        }
 	};
 
 	struct BoundingBox {
@@ -44,7 +77,7 @@ namespace common::geo_space {
 	// define a geographical space G grouping from bounding-box
 	class Space {
 	private:
-		double cell_size = 0.; // km resolution
+		double cell_size = 1.; // km resolution
 		BoundingBox bounding_box;
 
 	public:
@@ -103,5 +136,7 @@ namespace common::geo_space {
         double Distance(Point& lhs, Point& rhs);
 
         bool ContainsPoint(Point& point);
+
+        Point ReGenerateCoordinates(Point& point);
 	};
 }
