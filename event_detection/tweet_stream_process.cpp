@@ -65,6 +65,7 @@ namespace EventTweet::TweetStream {
                         continue;
                     }
                     snapshot.SetBurstyWords(std::move(bursty_word_set));
+
                     // compute tweet similarity and predict location
                     snapshot.GenerateWordIndexMap();
                     TweetSimilarityHandler similarity_handler(snapshot, config_file_handler);
