@@ -208,7 +208,7 @@ namespace EventTweet::TweetSimilarity {
         if (distance < bandwidth) {
             similarity_score = spatial_similarity_handler.constant * (1 - std::pow(distance, 2) / std::pow(bandwidth, 2));
         }
-        return 1.0 - similarity_score;
+        return 1.0 - similarity_score + 1e-5;
     }
 
     TweetSimilarityHandler& TweetSimilarityHandler::GenerateSimMap() {
