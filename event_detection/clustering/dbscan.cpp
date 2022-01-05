@@ -6,8 +6,7 @@
 namespace EventTweet::Clustering {
 
     DBSCAN::DBSCAN(SnapShot &_snapshot, TweetSimilarity::TweetSimilarityHandler &tweet_similarity_handler,
-                   ConfigFileHandler &config_file_handler) {
-        snapshot = _snapshot;
+                   ConfigFileHandler &config_file_handler): snapshot(_snapshot) {
         auto& spatial_map = tweet_similarity_handler.GetSpatialDistMap();
         auto& textual_map = tweet_similarity_handler.GetTextualDistMap();
         dist_map = 0.5 * spatial_map;
@@ -27,7 +26,7 @@ namespace EventTweet::Clustering {
 
     DBSCAN::~DBSCAN() {
         dist_map.setZero();
-        snapshot.Reset();
+        //snapshot.Reset();
         points.clear();
         tweet_position_map.clear();
         minimum_points = 0;
@@ -105,8 +104,7 @@ namespace EventTweet::Clustering {
         int index_lhs = tweet_position_map[tweet_lhs_id];
         int index_rhs = tweet_position_map[tweet_rhs_id];
 
-        int SIZE = dist_map.cols();
-        if (index_lhs >= SIZE || index_rhs >= SIZE) {
+        if (index_lhs >= dist_map.cols() || index_rhs >= dist_map.cols()) {
             std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
                       << " tweet index out of bound." << std::endl;
             return 1.;

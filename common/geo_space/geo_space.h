@@ -13,6 +13,8 @@ namespace common::geo_space {
 
     const double RADIUS = 0.05;
 
+    const double DIST = 111.;
+
 	class Point {
     public:
 		double longitude = 0.;
