@@ -82,7 +82,7 @@ namespace EventTweet::Clustering {
 
         std::unordered_map<std::string, int> tweet_position_map;
 
-        SnapShot snapshot;
+        SnapShot& snapshot;
 
     public:
         DBSCAN(SnapShot &_snapshot, TweetSimilarity::TweetSimilarityHandler &tweet_similarity_handler,

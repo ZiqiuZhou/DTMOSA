@@ -58,8 +58,7 @@ namespace EventTweet::TweetSimilarity {
     }
 
     TweetSimilarityHandler::TweetSimilarityHandler(SnapShot &_snapshot, ConfigFileHandler &config_file_handler)
-            : textual_similarity_handler(_snapshot) {
-        snapshot = _snapshot;
+            : textual_similarity_handler(_snapshot), snapshot(_snapshot) {
         tweet_textual_dist_map.setZero();
         tweet_spatial_dist_map.setZero();
         blank_position_list = {};
@@ -72,7 +71,7 @@ namespace EventTweet::TweetSimilarity {
 
     TweetSimilarityHandler::~TweetSimilarityHandler() {
         textual_similarity_handler.Reset();
-        snapshot.Reset();
+        //snapshot.Reset();
         tweet_textual_dist_map.setZero();
         tweet_spatial_dist_map.setZero();
         blank_position_list.clear();

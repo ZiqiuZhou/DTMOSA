@@ -109,8 +109,8 @@ namespace common::geo_space {
         std::uniform_real_distribution<double> random_number{0., 1.};
         double distance = RADIUS * sqrt(random_number(random_generator));
         double theta = random_number(random_generator) * (2 * M_PI);
-        double new_lon = distance * cos(theta) + centroid_lon;
-        double new_lat = distance * sin(theta) + centroid_lat;
+        double new_lon = distance * cos(theta) / DIST + centroid_lon;
+        double new_lat = distance * sin(theta) / DIST + centroid_lat;
         return Point{new_lon, new_lat};
     }
 }
