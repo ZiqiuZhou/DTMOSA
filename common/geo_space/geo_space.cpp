@@ -27,29 +27,21 @@ namespace common::geo_space {
 	double Space::GetLength() {
 		Point southwest_corner = GetSouthWestCorner();
 		Point southeast_corner = GetSouthEastCorner();
-		return boost::geometry::distance(
-			point(southwest_corner.longitude,
-				  southwest_corner.latitude),
-			point(southeast_corner.longitude,
-				  southeast_corner.latitude)) / 1e3;
+        return Distance(southwest_corner, southeast_corner);
 	}
 
 	double Space::GetWidth() {
 		Point southwest_corner = GetSouthWestCorner();
 		Point northwest_corner = GetNorthWestCorner();
-		return boost::geometry::distance(
-			point(southwest_corner.longitude,
-				southwest_corner.latitude),
-			point(northwest_corner.longitude,
-				northwest_corner.latitude)) / 1e3;
+        return Distance(southwest_corner, northwest_corner);
 	}
 
     int Space::GetCellIndex(double longitude, double latitude) {
 		Point northwest_corner = GetNorthWestCorner();
-		double col = boost::geometry::distance(point(northwest_corner.longitude, northwest_corner.latitude),
-											   point(longitude, northwest_corner.latitude)) / 1e3;
-		double row = boost::geometry::distance(point(northwest_corner.longitude, northwest_corner.latitude),
-											   point(northwest_corner.longitude, latitude)) / 1e3;
+        Point point1(longitude, northwest_corner.latitude);
+		double col = Distance(northwest_corner, point1);
+        Point point2(northwest_corner.longitude, latitude);
+		double row = Distance(northwest_corner,point2);
         int row_idx = (int)(row / cell_size);
         int col_idx = (int)(col / cell_size);
 		return row_idx * NumOfCols() + col_idx;
@@ -73,12 +65,12 @@ namespace common::geo_space {
         return rtn;
     }
 
-    double Space::Distance(Point& lhs, Point& rhs) {
-        using spherical_point = boost::geometry::model::point<
-                double, 2, boost::geometry::cs::spherical_equatorial<boost::geometry::degree> >;
+    using spherical_point = boost::geometry::model::point<
+            double, 2, boost::geometry::cs::spherical_equatorial<boost::geometry::degree> >;
 
+    double Space::Distance(Point& lhs, Point& rhs) {
         return boost::geometry::distance(spherical_point(lhs.longitude, lhs.latitude),
-                                         spherical_point(rhs.longitude, lhs.latitude)) * EARTH_RADIUS;
+                                         spherical_point(rhs.longitude, rhs.latitude)) * EARTH_RADIUS;
     }
 
     bool Space::ContainsPoint(Point& point) {

@@ -30,21 +30,23 @@ int main() {
     DataParser parser;
     std::string json_tweet = "{\"tweet_id\": \"903044642740035584\", \"user_id\": \"2452134079\", \"time\": \"2017-08-30 23:59:55\", \"longitude\": -95.41837, \"latitude\": 29.7891, \"context\": \"Wish the circumstances were different, but glad I got to spend my day working alongside my https://t.co/ggpHjuRUTN\", \"word_bag\": [\"wish\", \"circumstances\", \"different\", \"glad\", \"spend\", \"working\", \"alongside\"]}";
     parser.CrawledTweetParser(tweet, json_tweet);
-    std::cout << tweet.GetTweetID() << " "<< tweet.GetUserID() << " " << tweet.GetCreateTime() << " " << tweet.GetContext();
+    std::cout << tweet.GetTweetID() << " "<< tweet.GetUserID() << " " << tweet.GetCreateTime() << " " << tweet.GetContext() << std::endl;
     config_file_handler.GetVector("space_Houston");
     std::vector<double> coordinates = config_file_handler.GetVector("space_Houston");
-    Space space(coordinates, 1.1);
-    std::cout << space.GetLength() << " " << space.GetWidth() << std::endl;
+    Space space(coordinates, 1.0);
+    double length = space.GetLength();
+    double width = space.GetWidth();
+    std::cout << "Length:"  << " " << length << std::endl;
+    std::cout << "Width:"  << " " << width << std::endl;
     std::cout << space.NumOfCells() << std::endl;
-    common::geo_space::Point point1(-95.41083333, 29.68472222);
-    common::geo_space::Point point2(-95.4132, 29.6829);
-    common::geo_space::Point point3 = space.ReGenerateCoordinates(point1);
-    common::geo_space::Point point4 = space.ReGenerateCoordinates(point2);
-    std::cout << point3.longitude << " " << point3.latitude << std::endl;
-    std::cout << point4.longitude << " " << point4.latitude << std::endl;
-
+    std::cout << space.NumOfRows() << std::endl;
+    std::cout << space.NumOfCols() << std::endl;
+    common::geo_space::Point point1(-95.565128000000001, 29.544661000000001);
+    common::geo_space::Point point2(-95.565128000000001, 29.883392000000001);
+    double dist = space.Distance(point1, point2);
+    std::cout << space.GetCellIndex(space.GetSouthEastCorner().longitude, space.GetSouthEastCorner().latitude);
     TweetStreamProcess process(config_file_handler);
-    process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
+    //process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
     std::cout << "finished" << std::endl;
 
 //    Eigen::SparseVector<double> vec(10);
