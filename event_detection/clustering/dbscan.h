@@ -67,6 +67,44 @@ namespace EventTweet::Clustering {
             tweet_id.clear();
             longitude = 0.;
             latitude = 0.;
+            cluster_id = 0;
+        }
+
+        Point(const Point& _point) {
+            this->longitude = _point.longitude;
+            this->latitude = _point.latitude;
+            this->cluster_id = _point.cluster_id;
+            this->tweet_id = _point.tweet_id;
+            this->word_bag = _point.word_bag;
+        }
+
+        Point& operator=(const Point& _point) {
+            if (this == &_point) {
+                return *this;
+            }
+            Point temp_point = _point;
+            std::swap(*this, temp_point);
+            return *this;
+        }
+
+        Point(Point&& _point) noexcept {
+            this->longitude = std::exchange(_point.longitude, 0.);
+            this->latitude = std::exchange(_point.latitude, 0.);
+            this->cluster_id = std::exchange(_point.cluster_id, 0);
+            this->tweet_id = std::exchange(_point.tweet_id, "");
+            this->word_bag = std::exchange(_point.word_bag, {});
+        }
+
+        Point& operator=(Point&& _point) noexcept {
+            if (this == &_point) {
+                return *this;
+            }
+            this->longitude = std::exchange(_point.longitude, 0.);
+            this->latitude = std::exchange(_point.latitude, 0.);
+            this->cluster_id = std::exchange(_point.cluster_id, 0);
+            this->tweet_id = std::exchange(_point.tweet_id, "");
+            this->word_bag = std::exchange(_point.word_bag, {});
+            return *this;
         }
     };
 
@@ -91,6 +129,10 @@ namespace EventTweet::Clustering {
         ~DBSCAN();
 
     public:
+        std::vector<Point>& GetPoints() {
+            return points;
+        }
+
         int GetPointSize() {
             return points.size();
         }
