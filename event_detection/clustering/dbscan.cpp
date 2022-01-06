@@ -68,7 +68,7 @@ namespace EventTweet::Clustering {
             }
             cluster_seeds.erase(cluster_seeds.begin() + index_core_point);
 
-            for (std::size_t i = 0; i < cluster_seeds.size(); ++i) {
+            for (std::size_t i = 0, n = cluster_seeds.size(); i < n; ++i) {
                 int pos = cluster_seeds[i];
                 std::vector<int> cluster_neighbors = CalculateCluster(points[pos]);
                 if (cluster_neighbors.size() >= minimum_points) {
@@ -76,6 +76,7 @@ namespace EventTweet::Clustering {
                         if (points[neighbor_pos].cluster_id == UNCLASSIFIED || points[neighbor_pos].cluster_id == NOISE) {
                             if (points[neighbor_pos].cluster_id == UNCLASSIFIED) {
                                 cluster_seeds.push_back(neighbor_pos);
+                                n = cluster_seeds.size();
                             }
                             points[neighbor_pos].cluster_id = cluster_id;
                         }
