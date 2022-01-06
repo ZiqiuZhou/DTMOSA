@@ -10,8 +10,9 @@ namespace EventTweet::Clustering {
         auto& spatial_map = tweet_similarity_handler.GetSpatialDistMap();
         auto& textual_map = tweet_similarity_handler.GetTextualDistMap();
         double bandwidth = config_file_handler.GetValue("kernel_bandwidth", 80.);
-        dist_map = 0.5 * spatial_map;
-        dist_map += (0.5 * textual_map * bandwidth);
+//        dist_map = 0.5 * spatial_map;
+//        dist_map += (0.5 * textual_map * bandwidth);
+        dist_map = spatial_map;
         minimum_points = config_file_handler.GetValue("minimum_points", 10);
         epsilon = config_file_handler.GetValue("epsilon", 0.5);
 

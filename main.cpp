@@ -46,7 +46,7 @@ int main() {
     double dist = space.Distance(point1, point2);
     std::cout << space.GetCellIndex(space.GetSouthEastCorner().longitude, space.GetSouthEastCorner().latitude);
     TweetStreamProcess process(config_file_handler);
-    process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
+    //process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
     std::cout << "finished" << std::endl;
 
 //    Eigen::SparseVector<double> vec(10);
