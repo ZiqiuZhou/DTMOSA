@@ -118,16 +118,16 @@ namespace common::geo_space {
 		int NumOfCells() {
 			double length = GetLength();
 			double width = GetWidth();
-			return (int)(length * width / pow(cell_size, 2));
+			return (int)((int)(length + 1) * (int)(width + 1) / pow(cell_size, 2));
 		}
 
         int NumOfRows() {
-            double width = GetWidth();
+            double width = GetWidth() + 1;
             return (int)(width / cell_size);
         }
 
         int NumOfCols() {
-            double length = GetLength();
+            double length = GetLength() + 1;
             return (int)(length / cell_size);
         }
 

@@ -27,29 +27,21 @@ namespace common::geo_space {
 	double Space::GetLength() {
 		Point southwest_corner = GetSouthWestCorner();
 		Point southeast_corner = GetSouthEastCorner();
-		return boost::geometry::distance(
-			point(southwest_corner.longitude,
-				  southwest_corner.latitude),
-			point(southeast_corner.longitude,
-				  southeast_corner.latitude)) / 1e3;
+        return Distance(southwest_corner, southeast_corner);
 	}
 
 	double Space::GetWidth() {
 		Point southwest_corner = GetSouthWestCorner();
 		Point northwest_corner = GetNorthWestCorner();
-		return boost::geometry::distance(
-			point(southwest_corner.longitude,
-				southwest_corner.latitude),
-			point(northwest_corner.longitude,
-				northwest_corner.latitude)) / 1e3;
+        return Distance(southwest_corner, northwest_corner);
 	}
 
     int Space::GetCellIndex(double longitude, double latitude) {
 		Point northwest_corner = GetNorthWestCorner();
-		double col = boost::geometry::distance(point(northwest_corner.longitude, northwest_corner.latitude),
-											   point(longitude, northwest_corner.latitude)) / 1e3;
-		double row = boost::geometry::distance(point(northwest_corner.longitude, northwest_corner.latitude),
-											   point(northwest_corner.longitude, latitude)) / 1e3;
+        Point point1(longitude, northwest_corner.latitude);
+		double col = Distance(northwest_corner, point1);
+        Point point2(northwest_corner.longitude, latitude);
+		double row = Distance(northwest_corner,point2);
         int row_idx = (int)(row / cell_size);
         int col_idx = (int)(col / cell_size);
 		return row_idx * NumOfCols() + col_idx;
@@ -62,23 +54,29 @@ namespace common::geo_space {
         Point southwest_corner = GetSouthWestCorner();
         Point southeast_corner = GetSouthEastCorner();
         Point northwest_corner = GetNorthWestCorner();
-        double col_step = (southeast_corner.longitude - southwest_corner.longitude) / NumOfCols();
-        double row_step = (northwest_corner.latitude - southwest_corner.latitude) / NumOfRows();
-        cell_bounding_box.push_back(southwest_corner.longitude + long_index * col_step);
-        cell_bounding_box.push_back(northwest_corner.latitude - (lat_index + 1) * row_step);
-        cell_bounding_box.push_back(southwest_corner.longitude + (long_index + 1) * col_step);
-        cell_bounding_box.push_back(northwest_corner.latitude - lat_index * col_step);
+        cell_bounding_box.push_back(southwest_corner.longitude + long_index * cell_size);
+        cell_bounding_box.push_back(northwest_corner.latitude - (lat_index + 1) * cell_size);
+        cell_bounding_box.push_back(southwest_corner.longitude + (long_index + 1) * cell_size);
+        cell_bounding_box.push_back(northwest_corner.latitude - lat_index * cell_size);
 
         Point rtn((cell_bounding_box[0] + cell_bounding_box[2]) / 2, (cell_bounding_box[1] + cell_bounding_box[3]) / 2);
+        if (!ContainsPoint(rtn)) {
+            if (rtn.longitude >= bounding_box.northeast_corner.longitude) {
+                rtn.longitude = bounding_box.northeast_corner.longitude;
+            }
+            if (rtn.latitude <= bounding_box.southwest_corner.latitude) {
+                rtn.latitude = bounding_box.southwest_corner.latitude;
+            }
+        }
         return rtn;
     }
 
-    double Space::Distance(Point& lhs, Point& rhs) {
-        using spherical_point = boost::geometry::model::point<
-                double, 2, boost::geometry::cs::spherical_equatorial<boost::geometry::degree> >;
+    using spherical_point = boost::geometry::model::point<
+            double, 2, boost::geometry::cs::spherical_equatorial<boost::geometry::degree> >;
 
+    double Space::Distance(Point& lhs, Point& rhs) {
         return boost::geometry::distance(spherical_point(lhs.longitude, lhs.latitude),
-                                         spherical_point(rhs.longitude, lhs.latitude)) * EARTH_RADIUS;
+                                         spherical_point(rhs.longitude, rhs.latitude)) * EARTH_RADIUS;
     }
 
     bool Space::ContainsPoint(Point& point) {
@@ -89,17 +87,6 @@ namespace common::geo_space {
         if (longitude >= southwest_corner.longitude && longitude <= northeast_corner.longitude &&
             latitude >= southwest_corner.latitude && latitude <= northeast_corner.latitude) {
             return true;
-        } else {
-            double width = GetWidth();
-            double length = GetLength();
-            double centroid_longitude =
-                    (bounding_box.southwest_corner.longitude + bounding_box.northeast_corner.longitude) / 2.;
-            double centroid_latitude =
-                    (bounding_box.southwest_corner.latitude + bounding_box.northeast_corner.latitude) / 2.;
-            Point centroid(centroid_longitude, centroid_latitude);
-            if (Distance(centroid, point) < sqrt(std::pow(2 * width, 2) + std::pow(2 * length, 2))) {
-                return true;
-            }
         }
         return false;
     }
