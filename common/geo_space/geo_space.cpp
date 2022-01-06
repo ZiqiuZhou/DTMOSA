@@ -74,8 +74,11 @@ namespace common::geo_space {
     }
 
     double Space::Distance(Point& lhs, Point& rhs) {
-        return boost::geometry::distance(point(lhs.longitude, lhs.latitude),
-                                         point(rhs.longitude, lhs.latitude)) / 1e3;
+        using spherical_point = boost::geometry::model::point<
+                double, 2, boost::geometry::cs::spherical_equatorial<boost::geometry::degree> >;
+
+        return boost::geometry::distance(spherical_point(lhs.longitude, lhs.latitude),
+                                         spherical_point(rhs.longitude, lhs.latitude)) * EARTH_RADIUS;
     }
 
     bool Space::ContainsPoint(Point& point) {
