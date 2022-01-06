@@ -205,10 +205,8 @@ namespace EventTweet::TweetSimilarity {
         double distance = space.Distance(point1, point2);
 
         double bandwidth = spatial_similarity_handler.kernel_bandwidth;
-        if (distance < bandwidth) {
-            similarity_score = spatial_similarity_handler.constant * (1 - std::pow(distance, 2) / std::pow(bandwidth, 2));
-        }
-        return 1.0 - similarity_score;
+        similarity_score = distance >= bandwidth ? bandwidth : distance;
+        return similarity_score;
     }
 
     TweetSimilarityHandler& TweetSimilarityHandler::GenerateSimMap() {
