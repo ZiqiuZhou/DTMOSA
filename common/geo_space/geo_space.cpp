@@ -54,14 +54,20 @@ namespace common::geo_space {
         Point southwest_corner = GetSouthWestCorner();
         Point southeast_corner = GetSouthEastCorner();
         Point northwest_corner = GetNorthWestCorner();
-        double col_step = (southeast_corner.longitude - southwest_corner.longitude) / NumOfCols();
-        double row_step = (northwest_corner.latitude - southwest_corner.latitude) / NumOfRows();
-        cell_bounding_box.push_back(southwest_corner.longitude + long_index * col_step);
-        cell_bounding_box.push_back(northwest_corner.latitude - (lat_index + 1) * row_step);
-        cell_bounding_box.push_back(southwest_corner.longitude + (long_index + 1) * col_step);
-        cell_bounding_box.push_back(northwest_corner.latitude - lat_index * col_step);
+        cell_bounding_box.push_back(southwest_corner.longitude + long_index * cell_size);
+        cell_bounding_box.push_back(northwest_corner.latitude - (lat_index + 1) * cell_size);
+        cell_bounding_box.push_back(southwest_corner.longitude + (long_index + 1) * cell_size);
+        cell_bounding_box.push_back(northwest_corner.latitude - lat_index * cell_size);
 
         Point rtn((cell_bounding_box[0] + cell_bounding_box[2]) / 2, (cell_bounding_box[1] + cell_bounding_box[3]) / 2);
+        if (!ContainsPoint(rtn)) {
+            if (rtn.longitude >= bounding_box.northeast_corner.longitude) {
+                rtn.longitude = bounding_box.northeast_corner.longitude;
+            }
+            if (rtn.latitude <= bounding_box.southwest_corner.latitude) {
+                rtn.latitude = bounding_box.southwest_corner.latitude;
+            }
+        }
         return rtn;
     }
 
