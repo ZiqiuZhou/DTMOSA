@@ -58,11 +58,12 @@ namespace EventTweet::TweetSimilarity {
     }
 
     TweetSimilarityHandler::TweetSimilarityHandler(SnapShot &_snapshot, ConfigFileHandler &config_file_handler)
-            : textual_similarity_handler(_snapshot), snapshot(_snapshot) {
+            : textual_similarity_handler(_snapshot),
+              spatial_similarity_handler(config_file_handler),
+              snapshot(_snapshot) {
         tweet_textual_dist_map.setZero();
         tweet_spatial_dist_map.setZero();
         blank_position_list = {};
-        blank_position_id = {};
         tweet_position_map = {};
         textual_similarity_handler.restart_probability = config_file_handler.GetValue("restart_probability", 0.);
         textual_similarity_handler.iterations = config_file_handler.GetValue("iterations", 0);
@@ -75,7 +76,6 @@ namespace EventTweet::TweetSimilarity {
         tweet_textual_dist_map.setZero();
         tweet_spatial_dist_map.setZero();
         blank_position_list.clear();
-        blank_position_id.clear();
         tweet_position_map.clear();
     }
 
@@ -194,15 +194,15 @@ namespace EventTweet::TweetSimilarity {
         return similarity_score;
     }
 
-    double TweetSimilarityHandler::GeographicalImpactProcess(Tweet& tweet_lhs, Tweet& tweet_rhs) const {
+    double TweetSimilarityHandler::GeographicalImpactProcess(Tweet& tweet_lhs, Tweet& tweet_rhs) {
         double similarity_score = 0.;
         if (tweet_lhs.NeedPredictLocation() || tweet_rhs.NeedPredictLocation()) {
-            return -1.0;
+            similarity_score = spatial_similarity_handler.GetDistanceBound() + 1.;
+            return similarity_score;
         }
-        Space space;
         Point point1(tweet_lhs.GetLongitude(), tweet_lhs.GetLatitude());
         Point point2(tweet_rhs.GetLongitude(), tweet_rhs.GetLatitude());
-        double distance = space.Distance(point1, point2);
+        double distance = spatial_similarity_handler.space.Distance(point1, point2);
 
         double bandwidth = spatial_similarity_handler.kernel_bandwidth;
         similarity_score = distance >= bandwidth ? bandwidth : distance;
@@ -219,15 +219,14 @@ namespace EventTweet::TweetSimilarity {
         std::vector<Eigen::Triplet<double>> tripleList;
         for (auto iter_i = tweet_map.begin(); iter_i != tweet_map.end(); ++iter_i) {
             std::size_t index_i = std::distance(tweet_map.begin(), iter_i);
-            std::string tweet_id = (*iter_i).first;
-            tweet_position_map[tweet_id] = index_i;
+            std::string tweet_id_i = (*iter_i).first;
+            tweet_position_map[tweet_id_i] = index_i;
             tweet_spatial_dist_map(index_i, index_i) = 0.;
 
             auto iter_j = tweet_map.begin();
             std::advance(iter_j, index_i + 1);
             for (; iter_j != tweet_map.end(); ++iter_j) {
                 std::size_t index_j = std::distance(tweet_map.begin(), iter_j);
-                std::string tweet_id_i = (*iter_i).first;
                 Tweet tweet_lhs = (*iter_i).second;
                 std::string tweet_id_j = (*iter_j).first;
                 Tweet tweet_rhs = (*iter_j).second;
@@ -236,18 +235,10 @@ namespace EventTweet::TweetSimilarity {
                 double spatial_score = GeographicalImpactProcess(tweet_lhs, tweet_rhs);
                 tweet_spatial_dist_map(index_i, index_j) = spatial_score;
                 tweet_spatial_dist_map(index_j, index_i) = spatial_score;
-                if (spatial_score < 0.) {
-                    auto pos_i = blank_position_id.find(tweet_id_i);
-                    auto pos_j = blank_position_id.find(tweet_id_j);
-                    if (pos_i == blank_position_id.end() || pos_j == blank_position_id.end()) {
-                        // store blank spatial distance for such tweets absent with long / lat
-                        auto pair1 = std::make_pair(tweet_id_i, index_i);
-                        auto pair2 = std::make_pair(tweet_id_j, index_j);
-                        blank_position_list.emplace_back(std::make_pair(pair1, pair2));
-
-                        blank_position_id.insert(tweet_id_i);
-                        blank_position_id.insert(tweet_id_j);
-                    }
+                if (spatial_score >= spatial_similarity_handler.GetDistanceBound()) {
+                    auto pair1 = std::make_pair(tweet_id_i, index_i);
+                    auto pair2 = std::make_pair(tweet_id_j, index_j);
+                    blank_position_list.emplace_back(std::make_pair(pair1, pair2));
                 }
 
                 if (textual_score > 1e-5) {
@@ -492,7 +483,6 @@ namespace EventTweet::TweetSimilarity {
 
             double spatial_score = tweet_similarity_handler.GeographicalImpactProcess(tweet_i, tweet_j);
             tweet_similarity_handler.tweet_spatial_dist_map(index_i, index_j) = spatial_score;
-            tweet_similarity_handler.tweet_spatial_dist_map(index_j, index_i) = spatial_score;
         }
         return ;
     }

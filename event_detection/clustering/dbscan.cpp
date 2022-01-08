@@ -4,14 +4,13 @@
 #include "dbscan.h"
 
 namespace EventTweet::Clustering {
-
     DBSCAN::DBSCAN(SnapShot &_snapshot, TweetSimilarity::TweetSimilarityHandler &tweet_similarity_handler,
                    ConfigFileHandler &config_file_handler): snapshot(_snapshot) {
         auto& spatial_map = tweet_similarity_handler.GetSpatialDistMap();
         auto& textual_map = tweet_similarity_handler.GetTextualDistMap();
         double bandwidth = config_file_handler.GetValue("kernel_bandwidth", 80.);
         dist_map = 0.5 * spatial_map;
-        dist_map += (0.5 * textual_map * bandwidth);
+        dist_map += (0.5 * bandwidth * textual_map);
         minimum_points = config_file_handler.GetValue("minimum_points", 10);
         epsilon = config_file_handler.GetValue("epsilon", 10.0);
 
@@ -35,35 +34,41 @@ namespace EventTweet::Clustering {
     }
 
     int DBSCAN::Cluster() {
-        int cluster_id = 1;
         if (points.empty() || points.size() == 1) {
             return FAILURE;
         }
         for (auto& point : points) {
             if (point.cluster_id == UNCLASSIFIED) {
-                if (ExpandCluster(point, cluster_id) != FAILURE) {
-                    cluster_id += 1;
+                if (ExpandCluster(point) == FAILURE) {
+                    continue;
                 }
             }
         }
         return SUCCESS;
     }
 
-    int DBSCAN::ExpandCluster(Point& point, int cluster_id) {
+    int DBSCAN::ExpandCluster(Point& point) {
         std::vector<int> cluster_seeds = CalculateCluster(point);
-        if (cluster_seeds.empty() || cluster_seeds.size() <= minimum_points) {
+        std::unordered_set<int> seeds_set = {};
+        for (int pos: cluster_seeds) {
+            seeds_set.insert(pos);
+        }
+
+        if (cluster_seeds.empty() || cluster_seeds.size() < minimum_points) {
             point.cluster_id = NOISE;
             return FAILURE;
         } else {
+            cluster_id++;
             int index = 0;
             int index_core_point = 0;
             for (int pos : cluster_seeds) {
                 if (pos >= points.size()) {
                     return FAILURE;
                 }
-                points[pos].cluster_id = cluster_id;
-                if (points[pos].latitude == point.latitude && points[pos].longitude == point.longitude) {
+                if (points[pos].tweet_id == point.tweet_id) {
                     index_core_point = index;
+                    points[pos].cluster_id = cluster_id;
+                    break;
                 }
                 ++index;
             }
@@ -71,17 +76,24 @@ namespace EventTweet::Clustering {
 
             for (std::size_t i = 0, n = cluster_seeds.size(); i < n; ++i) {
                 int pos = cluster_seeds[i];
-                std::vector<int> cluster_neighbors = CalculateCluster(points[pos]);
+                Point& seed_point = points[pos];
+                if (seed_point.cluster_id == NOISE) {
+                    seed_point.cluster_id = cluster_id;
+                }
+                if (seed_point.cluster_id != UNCLASSIFIED) {
+                    continue;
+                }
+                seed_point.cluster_id = cluster_id;
+
+                std::vector<int> cluster_neighbors = CalculateCluster(seed_point);
                 if (cluster_neighbors.size() >= minimum_points) {
-                    for (int neighbor_pos : cluster_neighbors) {
-                        if (points[neighbor_pos].cluster_id == UNCLASSIFIED || points[neighbor_pos].cluster_id == NOISE) {
-                            if (points[neighbor_pos].cluster_id == UNCLASSIFIED) {
-                                cluster_seeds.push_back(neighbor_pos);
-                                n = cluster_seeds.size();
-                            }
-                            points[neighbor_pos].cluster_id = cluster_id;
+                    for (int neighbor_pos: cluster_neighbors) {
+                        if (seeds_set.find(neighbor_pos) == seeds_set.end()) {
+                            cluster_seeds.push_back(neighbor_pos);
+                            seeds_set.insert(neighbor_pos);
                         }
                     }
+                    n = cluster_seeds.size();
                 }
             }
             return SUCCESS;

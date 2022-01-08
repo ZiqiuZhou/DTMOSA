@@ -68,6 +68,15 @@ namespace common::geo_space {
 			}
 		}
 
+        BoundingBox(std::vector<double>&& coordinates_list) {
+            if (!coordinates_list.empty() && coordinates_list.size() == 4) {
+                southwest_corner.longitude = coordinates_list[0];
+                southwest_corner.latitude = coordinates_list[1];
+                northeast_corner.longitude = coordinates_list[2];
+                northeast_corner.latitude = coordinates_list[3];
+            }
+        }
+
 		BoundingBox(Point& sc, Point& nc) {
 			southwest_corner.longitude = sc.longitude;
 			southwest_corner.latitude = sc.latitude;
@@ -93,6 +102,9 @@ namespace common::geo_space {
 
 		Space(std::vector<double>& coordinates_list, double _cell_size)
 			: cell_size(_cell_size), bounding_box(coordinates_list) {}
+
+        Space(std::vector<double>&& coordinates_list, double _cell_size)
+                : cell_size(_cell_size), bounding_box(std::move(coordinates_list)) {}
 
 		Space(Point& sc, Point& nc, double _cell_size)
 			: cell_size(_cell_size), bounding_box(sc, nc) {}

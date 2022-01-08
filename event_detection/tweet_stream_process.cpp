@@ -77,6 +77,10 @@ namespace EventTweet::TweetStream {
                     // clustering
                     DBSCAN dbscan(snapshot, similarity_handler, config_file_handler);
                     dbscan.Cluster();
+                    auto& points = dbscan.GetPoints();
+                    for (auto point: points) {
+                        std::cout << std::setprecision(10) << point.longitude << " " << std::setprecision(10) << point.latitude << " " << point.cluster_id << std::endl;
+                    }
                 }
 				// trigger sliding window to slide
 				sliding_window.Slide(snapshot);

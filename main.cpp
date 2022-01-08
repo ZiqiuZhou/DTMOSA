@@ -41,12 +41,13 @@ int main() {
     std::cout << space.NumOfCells() << std::endl;
     std::cout << space.NumOfRows() << std::endl;
     std::cout << space.NumOfCols() << std::endl;
-    common::geo_space::Point point1(-95.565128000000001, 29.544661000000001);
-    common::geo_space::Point point2(-95.565128000000001, 29.883392000000001);
+    common::geo_space::Point point1(-95.38337076,  29.76251575);
+    common::geo_space::Point point2(-95.37880262,  29.68709413);
     double dist = space.Distance(point1, point2);
+    std::cout << dist << std::endl;
     std::cout << space.GetCellIndex(space.GetSouthEastCorner().longitude, space.GetSouthEastCorner().latitude);
     TweetStreamProcess process(config_file_handler);
-    //process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
+    process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
     std::cout << "finished" << std::endl;
 
 //    Eigen::SparseVector<double> vec(10);
