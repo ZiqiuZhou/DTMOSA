@@ -4,7 +4,7 @@
 
 namespace PreProcessing::JsonParser {
 
-	bool DataParser::CrawledTweetParser(Tweet& tweet, std::string& json_tweet) {
+	bool DataParser::TweetParser(Tweet& tweet, std::string& json_tweet) {
 		document.SetObject();
 
 		ParseResult parse_result = document.Parse(json_tweet.c_str());
@@ -83,4 +83,31 @@ namespace PreProcessing::JsonParser {
 
 		return true;
 	}
+
+    void DataParser::TweetToJSON(Tweet& tweet, std::string& str) {
+        std::string tweet_id = tweet.GetTweetID();
+        std::unordered_multiset<std::string>& word_bag = tweet.GetWordBag();
+
+        document.SetObject();
+        Document::AllocatorType& allocator = document.GetAllocator();
+        // set tweet_id
+        Value tweet_id_value;
+        tweet_id_value.SetString(tweet_id.c_str(), allocator);
+        document.AddMember("tweet_id", tweet_id_value, allocator);
+        // set word bag
+        Value array(kArrayType);
+        for (std::string word : word_bag) {
+            Value word_value;
+            word_value.SetString(word.c_str(), allocator);
+            array.PushBack(word_value, allocator);
+        }
+        document.AddMember("word_bag", array, allocator);
+
+        // Stringify the DOM
+        StringBuffer buffer;
+        Writer<StringBuffer> writer(buffer);
+        document.Accept(writer);
+        str = buffer.GetString();
+        return ;
+    }
 }

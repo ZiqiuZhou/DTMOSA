@@ -41,13 +41,22 @@ namespace EventTweet::TweetStream {
 	class TweetStreamProcess {
 	private:
 		int current_snapshot_index = 0;
+
 		int time_interval; // time interval in seconds
+
 		ptime start_time;
+
+    public:
+        bool GLOVE = false;
+
+        bool OPTICS = false;
 
 	public:
 		TweetStreamProcess(ConfigFileHandler& config_file_handler);
 
 		time_duration::sec_type ToTimeDuration(std::string&& time_str_format);
+
+        void ProcessGLOVE(DataParser& json_parser, SnapShot& snapshot);
 
 		bool StreamProcess(FileReader& fileReader, ConfigFileHandler& config_file_handler);
 	};
