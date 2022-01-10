@@ -57,8 +57,19 @@ namespace EventTweet::TweetSimilarity {
 
         double kernel_bandwidth = 1.;
 
+        Space space;
+
     public:
-        SpatialSimilarityHandler() = default;
+        SpatialSimilarityHandler(ConfigFileHandler &config_file_handler)
+        : space(config_file_handler.GetVector("space_Houston"),
+                config_file_handler.GetValue("cell_size", 1.0)) {
+
+        }
+
+        double GetDistanceBound() {
+            double bound = std::max(space.GetLength(), space.GetWidth());
+            return bound;
+        }
     };
 
     class TextualSimilarityHandler {
@@ -107,9 +118,6 @@ namespace EventTweet::TweetSimilarity {
 
         std::vector<BlankPositionPair> blank_position_list;
 
-        // record which position in spatial_dist_map need to be recomputed
-        std::unordered_set<std::string> blank_position_id;
-
         // (tweet_id, index) record index of a tweet in dist_map
         std::unordered_map<std::string, int> tweet_position_map;
 
@@ -133,7 +141,7 @@ namespace EventTweet::TweetSimilarity {
 
         double TextualImpactProcess(Tweet& tweet_lhs, Tweet& tweet_rhs);
 
-        double GeographicalImpactProcess(Tweet& tweet_lhs, Tweet& tweet_rhs) const;
+        double GeographicalImpactProcess(Tweet& tweet_lhs, Tweet& tweet_rhs);
 
         TweetTextualDistMap& GetTextualDistMap();
 

@@ -15,6 +15,16 @@ namespace EventTweet::TweetStream {
 		return duration.total_seconds();
 	}
 
+    void TweetStreamProcess::ProcessGLOVE(DataParser& json_parser, SnapShot& snapshot) {
+        auto& tweet_map = snapshot.GetTweetMap();
+        for (auto& id_tweet: snapshot.GetTweetMap()) {
+            Tweet& tweet = id_tweet.second;
+            std::string json_string;
+            json_parser.TweetToJSON(tweet, json_string);
+        }
+        return ;
+    }
+
 	bool TweetStreamProcess::StreamProcess(FileReader& fileReader, ConfigFileHandler& config_file_handler) {
 		DataParser json_parser;
 
@@ -31,7 +41,7 @@ namespace EventTweet::TweetStream {
         for (std::string_view line : linesInFile(std::move(fileReader))) {
 			std::string json_tweet = std::string(line);
 			Tweet tweet;
-			if (!json_parser.CrawledTweetParser(tweet, json_tweet)) {
+			if (!json_parser.TweetParser(tweet, json_tweet)) {
 				continue;
 			}
 			json_tweet.clear();
@@ -55,7 +65,7 @@ namespace EventTweet::TweetStream {
 				if (snapshot.GetIndex() < history_length) {
 					history_sequence_set.ManipulateWordHistory(snapshot);
 				} else {
-                    // get bursty words set at snapshot t
+                    // 1. get bursty words set at snapshot t
                     BurstyWords bursty_word_set;
                     if (!history_sequence_set.Burst(snapshot, bursty_word_set)) {
                         current_snapshot_index++;
@@ -66,7 +76,11 @@ namespace EventTweet::TweetStream {
                     }
                     snapshot.SetBurstyWords(std::move(bursty_word_set));
 
-                    // compute tweet similarity and predict location
+                    // 2. compute tweet similarity and predict location
+                    if (GLOVE) {
+                        // word embedding using GLOVE
+
+                    }
                     snapshot.GenerateWordIndexMap();
                     TweetSimilarityHandler similarity_handler(snapshot, config_file_handler);
                     similarity_handler.Init()
@@ -74,15 +88,18 @@ namespace EventTweet::TweetStream {
                     TweetLocationPredictor location_predictor(config_file_handler);
                     location_predictor.Predict(similarity_handler);
 
-                    // clustering
+                    // 3. clustering
                     DBSCAN dbscan(snapshot, similarity_handler, config_file_handler);
                     dbscan.Cluster();
+                    auto& points = dbscan.GetPoints();
+                    for (auto point: points) {
+                        std::cout << std::setprecision(10) << point.longitude << " " << std::setprecision(10) << point.latitude << " " << point.cluster_id << std::endl;
+                    }
                 }
-				// trigger sliding window to slide
+				// 4. trigger sliding window to slide and switch to next snapshot
 				sliding_window.Slide(snapshot);
 				snapshot.Reset();
 
-				// switch to next snapshot
 				current_snapshot_index++;
 				snapshot.SetIndex(current_snapshot_index);
 				int step = duration / time_interval;

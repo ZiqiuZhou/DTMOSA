@@ -114,6 +114,8 @@ namespace EventTweet::Clustering {
 
         double epsilon = 1.;
 
+        int cluster_id = 0;
+
         DistMapType dist_map;
 
         std::vector<Point> points;
@@ -139,7 +141,7 @@ namespace EventTweet::Clustering {
 
         int Cluster();
 
-        int ExpandCluster(Point& point, int cluster_id);
+        int ExpandCluster(Point& point);
 
         std::vector<int> CalculateCluster(Point& point_lhs);
 
