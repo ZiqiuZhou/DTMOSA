@@ -2,6 +2,10 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <string>
+#include <span>
+#include <fstream>
+#include <cstdio>
+#include <iterator>
 
 #include "../common/file_io/lines.h"
 #include "../common/config_handler/config_handler.h"
@@ -21,8 +25,11 @@ using boost::posix_time::time_from_string;
 using boost::posix_time::time_duration;
 using boost::posix_time::seconds;
 using common::file_io::FileReader;
+using common::file_io::FileWriter;
 using common::file_io::FileMode;
 using common::file_io::read_lines::linesInFile;
+using common::file_io::FileReaderNormal;
+using common::file_io::FileWriterNormal;
 using common::config_handler::ConfigFileHandler;
 using common::geo_space::Point;
 using common::geo_space::Space;
@@ -56,7 +63,7 @@ namespace EventTweet::TweetStream {
 
 		time_duration::sec_type ToTimeDuration(std::string&& time_str_format);
 
-        void ProcessGLOVE(DataParser& json_parser, SnapShot& snapshot);
+        bool ProcessGLOVE(DataParser& json_parser, SnapShot& snapshot, std::string& filename);
 
 		bool StreamProcess(FileReader& fileReader, ConfigFileHandler& config_file_handler);
 	};
