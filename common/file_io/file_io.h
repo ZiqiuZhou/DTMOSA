@@ -59,7 +59,7 @@ namespace common::file_io {
         }
 
         [[nodiscard]] FileReadResult readTo(std::span<char>& buffer) {
-            FileReadResult result;
+            FileReadResult result{};
 
             if (detail::readFile(result, file_, buffer) != 0) {
                 throw std::runtime_error("failed to read from file");
@@ -79,12 +79,66 @@ namespace common::file_io {
         detail::FileHandle file_;
 
         FileWriter(const std::filesystem::path& path, FileMode& mode)
-            : file_(std::move(detail::openFile(path, detail::FileAccessMode::read, mode))) {}
+            : file_(std::move(detail::openFile(path, detail::FileAccessMode::write, mode))) {}
 
     public:
         static FileWriter* open(const std::filesystem::path& path, FileMode&& mode) {
             static FileWriter instance(path, mode);
             return &instance;
+        }
+
+        void write(std::span<char>& buffer) {
+            if (!detail::writeFile(file_, buffer)) {
+                throw std::runtime_error("failed to write to file");
+            }
+        }
+
+        void close() {
+            detail::closeFile(std::move(file_));
+        }
+    };
+
+    class FileReaderNormal {
+    private:
+        detail::FileHandle file_;
+
+    public:
+        FileReaderNormal() {
+            file_.reset();
+        }
+
+        void open(const std::filesystem::path &path, FileMode mode) {
+            file_ = std::move(detail::openFile(path, detail::FileAccessMode::read, mode));
+            return ;
+        }
+
+        [[nodiscard]] FileReadResult readTo(std::span<char>& buffer) {
+            FileReadResult result{};
+
+            if (detail::readFile(result, file_, buffer) != 0) {
+                throw std::runtime_error("failed to read from file");
+            }
+
+            return result;
+        }
+
+        void close() {
+            detail::closeFile(std::move(file_));
+        }
+    };
+
+    class FileWriterNormal {
+    private:
+        detail::FileHandle file_;
+
+    public:
+        FileWriterNormal() {
+            file_.reset();
+        }
+
+        void open(const std::filesystem::path &path, FileMode mode) {
+            file_ = std::move(detail::openFile(path, detail::FileAccessMode::write, mode));
+            return ;
         }
 
         void write(std::span<char>& buffer) {

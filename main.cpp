@@ -59,8 +59,11 @@ int main(int argc, char* argv[]) {
             process.OPTICS = true;
         }
     }
-    //process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
-    std::cout << "finished" << std::endl;
+    process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
+//    auto& reader1 = *FileReader::open(filename, FileMode::text);
+//    auto filename1 = "/home/dietrich/master_thesis/GeoBurst_OSM/event_detection/GloVe";
+//    FileReader& reader = *FileReader::open(filename1, FileMode::text);
+//    std::cout << &reader << " " << &reader1 << std::endl;
 
     return 0;
 }

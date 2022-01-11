@@ -108,6 +108,7 @@ namespace PreProcessing::JsonParser {
         Writer<StringBuffer> writer(buffer);
         document.Accept(writer);
         str = buffer.GetString();
+        str.push_back('\n');
         return ;
     }
 }
