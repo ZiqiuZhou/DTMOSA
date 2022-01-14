@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 20)
 
 add_compile_options(-pipe -O2 -Wall)
-find_package(Boost REQUIRED COMPONENTS date_time)
+find_package(Boost REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(PythonLibs REQUIRED)
 

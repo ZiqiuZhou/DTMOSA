@@ -1,6 +1,8 @@
 #pragma once
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <ctime>
+#include <chrono>
+#include <iomanip>
 #include <string>
 #include <span>
 #include <fstream>
@@ -20,11 +22,6 @@
 
 using PreProcessing::TweetParser::Tweet;
 using PreProcessing::JsonParser::DataParser;
-using boost::posix_time::ptime;
-using boost::posix_time::time_duration;
-using boost::posix_time::time_from_string;
-using boost::posix_time::time_duration;
-using boost::posix_time::seconds;
 using common::file_io::FileReader;
 using common::file_io::FileWriter;
 using common::file_io::FileMode;
@@ -47,13 +44,15 @@ using EventTweet::Clustering::DBSCAN;
 
 namespace EventTweet::TweetStream {
 
+    std::chrono::system_clock::time_point time_from_string(std::string& time_string);
+
 	class TweetStreamProcess {
 	private:
 		int current_snapshot_index = 0;
 
 		int time_interval; // time interval in seconds
 
-		ptime start_time;
+        std::chrono::system_clock::time_point start_time;
 
     public:
         bool GLOVE = false;
@@ -65,7 +64,7 @@ namespace EventTweet::TweetStream {
 
         ~TweetStreamProcess();
 
-		time_duration::sec_type ToTimeDuration(std::string&& time_str_format);
+        int ToTimeDuration(std::string&& time_str_format);
 
         bool ProcessGLOVE(DataParser& json_parser, SnapShot& snapshot, ConfigFileHandler& config_file_handler);
 

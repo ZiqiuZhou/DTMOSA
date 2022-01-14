@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
             process.OPTICS = true;
         }
     }
-    //process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
+    process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
 //    auto& reader1 = *FileReader::open(filename, FileMode::text);
 //    auto filename1 = "/home/dietrich/master_thesis/GeoBurst_OSM/event_detection/GloVe";
 //    FileReader& reader = *FileReader::open(filename1, FileMode::text);
@@ -67,6 +67,28 @@ int main(int argc, char* argv[]) {
     std::vector<double> a;
     std::vector<double> b{1., 2., 3.};
     std::transform(a.begin(), a.end(), b.begin(), b.end(), std::plus<double>());
+
+    std::tm t = {};
+    std::istringstream ss("2017-08-20 00:00:01"); // 2017-08-20 00:00:01
+    ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
+    if (ss.fail()) {
+        std::cout << "Parse failed\n";
+    } else {
+        std::cout << std::put_time(&t, "%c") << '\n';
+    }
+
+    std::tm t1 = {};
+    std::istringstream ss1("2017-08-20 00:05:24"); // 2017-08-20 00:00:01
+    ss1 >> std::get_time(&t1, "%Y-%m-%d %H:%M:%S");
+    if (ss1.fail()) {
+        std::cout << "Parse failed\n";
+    } else {
+        std::cout << std::put_time(&t1, "%c") << '\n';
+    }
+    auto tp1 = std::chrono::system_clock::from_time_t(std::mktime(&t1));
+    auto tp = std::chrono::system_clock::from_time_t(std::mktime(&t));
+    std::chrono::duration<float> fs = tp1 - tp;
+    std::cout << fs.count() << "s\n";
     std::cout << "finish.";
     return 0;
 }
