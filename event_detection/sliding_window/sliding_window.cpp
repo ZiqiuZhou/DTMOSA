@@ -75,6 +75,16 @@ namespace EventTweet::SlidingWindow {
         return ;
     }
 
+    void SnapShot::ComputeTweetVectorization() {
+        auto& tweet_map = GetTweetMap();
+//        for (auto& id_tweet : tweet_map) {
+//            Tweet& tweet = id_tweet.second;
+//            if (!tweet.GetWordEmbedding().empty()) {
+//
+//            }
+//        }
+    }
+
 	SnapShot& Window::GetOldest() {
 		return sliding_window.front();
 	}
