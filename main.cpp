@@ -7,7 +7,7 @@
 #include "common/config_handler/config_handler.h"
 #include "common/geo_space/geo_space.h"
 #include "pre_processing/Tweet.h"
-#include "pre_processing/crawled_data_parser.h"
+#include "pre_processing/data_parser.h"
 #include "event_detection/tweet_stream_process.h"
 
 using common::file_io::FileReader;

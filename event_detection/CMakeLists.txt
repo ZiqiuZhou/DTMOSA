@@ -3,6 +3,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 find_package(Boost REQUIRED COMPONENTS date_time)
 find_package(Eigen3 REQUIRED)
+find_package(PythonLibs REQUIRED)
 
 add_library(event_detection SHARED
         "tweet_stream_process.cpp"
@@ -13,6 +14,8 @@ add_library(event_detection SHARED
         "tweet_similarity/similarity_handler.cpp"
         "clustering/dbscan.cpp")
 
+set(PYTHON_INCLUDE_DIR "/usr/include/python3.8")
+set(PYTHON_LIBRARIES "/usr/lib/x86_64-linux-gnu/libpython3.8.so")
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 target_compile_features(event_detection
@@ -31,6 +34,7 @@ target_include_directories(event_detection
         ${PROJECT_SOURCE_DIR}/config_handler
         ${Boost_INCLUDE_DIRS}
         ${Eigen_INCLUDE_DIRS}
+        ${PYTHON_INCLUDE_DIRS}
         )
 
 target_link_libraries(event_detection
@@ -39,4 +43,5 @@ target_link_libraries(event_detection
         ${PROJECT_SOURCE_DIR}/lib/libcommon.so
         ${Boost_LIBRARIES}
         ${Eigen_LIBRARIES}
+        ${PYTHON_LIBRARIES}
         )

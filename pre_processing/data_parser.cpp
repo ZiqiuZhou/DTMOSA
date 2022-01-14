@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "crawled_data_parser.h"
+#include "data_parser.h"
 
 namespace PreProcessing::JsonParser {
 

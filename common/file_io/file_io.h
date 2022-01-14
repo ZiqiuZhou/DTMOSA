@@ -1,5 +1,7 @@
 #pragma once
 #include <span>
+#include <string>
+#include <vector>
 #include <cstdio>      // for FILE etc.
 #include <memory>      // for unique_ptr<>
 #include <cstddef>     // for byte
@@ -107,6 +109,10 @@ namespace common::file_io {
             file_.reset();
         }
 
+        std::FILE* GetFilePointer() {
+            return file_.get();
+        }
+
         void open(const std::filesystem::path &path, FileMode mode) {
             file_ = std::move(detail::openFile(path, detail::FileAccessMode::read, mode));
             return ;
@@ -136,6 +142,10 @@ namespace common::file_io {
             file_.reset();
         }
 
+        std::FILE* GetFilePointer() {
+            return file_.get();
+        }
+
         void open(const std::filesystem::path &path, FileMode mode) {
             file_ = std::move(detail::openFile(path, detail::FileAccessMode::write, mode));
             return ;
@@ -151,4 +161,6 @@ namespace common::file_io {
             detail::closeFile(std::move(file_));
         }
     };
+
+    std::vector<std::string> SplitPath(std::string& filename);
 } // namespace common::file_io
