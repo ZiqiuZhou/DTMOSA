@@ -6,7 +6,6 @@ namespace PreProcessing::JsonParser {
 
 	bool DataParser::TweetParser(Tweet& tweet, std::string& json_tweet) {
 		document.SetObject();
-
 		ParseResult parse_result = document.Parse(json_tweet.c_str());
 
 		if (!parse_result) {
@@ -84,6 +83,60 @@ namespace PreProcessing::JsonParser {
 		return true;
 	}
 
+    bool DataParser::WordEmbeddingParser(std::string& json_tweet, std::unordered_map<std::string, Tweet>& tweet_map) {
+        document.SetObject();
+        ParseResult parse_result = document.Parse(json_tweet.c_str());
+
+        if (!parse_result) {
+            fprintf(stderr, "JSON parse error: %s (%u)",
+                    GetParseError_En(parse_result.Code()), parse_result.Offset());
+            exit(EXIT_FAILURE);
+        }
+
+        if (!(document.HasMember("tweet_id") && document["tweet_id"].IsString() && !document["tweet_id"].IsNull())) {
+            std::cout << "file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                      << " Invalid tweet_id element in json." << std::endl;
+            return false;
+        }
+
+        const std::string& id = document["tweet_id"].GetString();
+        if (tweet_map.find(id) == tweet_map.end()) {
+            return false;
+        }
+        Tweet& tweet = tweet_map[id];
+
+        if (!(document.HasMember("word_embedding") && document["word_embedding"].IsObject() &&
+              !document["word_embedding"].IsNull())) {
+            std::cout << "file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                      << " Invalid word embedding element in json." << std::endl;
+            return false;
+        }
+
+        const Value& doc_embedding = document["word_embedding"];
+        auto& word_embedding = tweet.GetWordEmbedding();
+        for (Value::ConstMemberIterator iter = doc_embedding.MemberBegin(); iter != doc_embedding.MemberEnd(); ++iter) {
+            const Value& weight_vector= iter->value;
+            if (weight_vector.IsObject() && !weight_vector.IsNull()) {
+                if ((weight_vector.HasMember("weight") && weight_vector["weight"].IsNumber() &&
+                     !weight_vector["weight"].IsNull()) &&
+                    (weight_vector.HasMember("vectorization") && weight_vector["vectorization"].IsArray() &&
+                     !weight_vector["vectorization"].IsNull())) {
+                    double weight = weight_vector["weight"].GetDouble();
+
+                    std::vector<double> vectorization;
+                    for (auto& ele : weight_vector["vectorization"].GetArray()) {
+                        vectorization.push_back(ele.GetDouble());
+                    }
+                    word_embedding.emplace_back(std::make_pair(weight, vectorization));
+                    std::cout << "S";
+                }
+            } else {
+                return false;
+            }
+        }
+       return true;
+    }
+
     void DataParser::TweetToJSON(Tweet& tweet, std::string& str) {
         std::string tweet_id = tweet.GetTweetID();
         std::unordered_multiset<std::string>& word_bag = tweet.GetWordBag();
@@ -111,4 +164,6 @@ namespace PreProcessing::JsonParser {
         str.push_back('\n');
         return ;
     }
+
+
 }

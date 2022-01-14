@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_set>
+#include <unordered_map>
 #include <string>
 
 #include "Tweet.h"
@@ -36,6 +37,8 @@ namespace PreProcessing::JsonParser {
 		}
 
 		bool TweetParser(Tweet& tweet, std::string& json_tweet);
+
+        bool WordEmbeddingParser(std::string& json_tweet, std::unordered_map<std::string, Tweet>& tweet_map);
 
         void TweetToJSON(Tweet& tweet, std::string& str);
 	};
