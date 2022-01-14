@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 20)
 
+add_compile_options(-pipe -O2 -Wall)
 add_library(common SHARED
         "file_io/file_io.cpp"
         "file_io/lines.cpp"

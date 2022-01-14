@@ -83,11 +83,16 @@ namespace EventTweet::TweetStream {
         file_reader.close();
         Py_Finalize();
 
+        // parse word_embedding result
         file_reader.open(embedded_file, FileMode::text);
         for (std::string_view line : linesInFile(std::move(file_reader))) {
             std::string json_tweet = std::string(line);
-            std::cout << "S";
+            if (!json_parser.WordEmbeddingParser(json_tweet, tweet_map)) {
+                std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                          << " Parse word_embedding failed." << std::endl;
+            }
         }
+
         // delete file
         std::remove(need_embedding_file.c_str());
         std::remove(embedded_file.c_str());
