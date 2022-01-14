@@ -12,6 +12,7 @@
 #include "file_io.h"
 
 using common::file_io::FileReader;
+using common::file_io::FileReaderNormal;
 
 namespace common::file_io::read_lines {
 
@@ -113,10 +114,113 @@ namespace common::file_io::read_lines {
 		}
 	};
 
+    class LineRangeNormal
+    {
+    private:
+        FileReaderNormal fileReader_;
+
+        std::string readBuf_;
+
+        std::size_t lineStart_ = 0;
+        std::size_t pos_ = 0;
+        std::size_t end_ = 0;
+        bool endOfFile_ = false;
+
+        std::string_view nextLine_;
+
+        bool tryReadNextLine();
+
+    public:
+        LineRangeNormal(FileReaderNormal&& _fileReader);
+
+        class iterator
+        {
+            friend LineRangeNormal;
+
+        private:
+            LineRangeNormal* lineRange_;
+
+            void tryReadNextLine()
+            {
+                if (!lineRange_->tryReadNextLine())
+                {
+                    lineRange_ = nullptr;
+                }
+            }
+
+            explicit iterator(LineRangeNormal& lineRange)
+                    : lineRange_(&lineRange)
+            {
+                tryReadNextLine();
+            }
+
+            iterator() noexcept
+                    : lineRange_(nullptr)
+            {
+            }
+
+        public:
+            using value_type = std::string_view;
+            using difference_type = std::ptrdiff_t;
+            using reference = std::string_view;
+            using pointer = std::string_view*;
+            using iterator_category = std::input_iterator_tag;
+            using iterator_concept = std::input_iterator_tag;
+
+            friend bool operator ==(iterator lhs, iterator rhs)
+            {
+                return lhs.lineRange_ == rhs.lineRange_;
+            }
+
+            friend bool operator !=(iterator lhs, iterator rhs)
+            {
+                return !(lhs == rhs);
+            }
+
+            reference operator *() const
+            {
+                if (lineRange_ != nullptr)
+                {
+                    return lineRange_->nextLine_;
+                }
+            }
+
+            pointer operator ->() const
+            {
+                return &lineRange_->nextLine_;
+            }
+            iterator& operator ++()
+            {
+                tryReadNextLine();
+                return *this;
+            }
+            iterator operator ++(int)
+            {
+                // For strict input iterators there is no difference between prefix and postfix increment.
+                return ++ * this;
+            }
+        };
+
+        iterator begin()
+        {
+            return iterator{ *this };
+        }
+
+        iterator end()
+        {
+            return iterator{ };
+        }
+    };
+
 	inline LineRange linesInFile(FileReader&& fileReader)
 	{
 		return { std::move(fileReader) };
 	}
+
+    inline LineRangeNormal linesInFile(FileReaderNormal&& fileReader)
+    {
+        return { std::move(fileReader) };
+    }
 }
 #endif
 

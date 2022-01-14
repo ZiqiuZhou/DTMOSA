@@ -6,12 +6,13 @@
 #include <fstream>
 #include <cstdio>
 #include <iterator>
+#include <python3.8/Python.h>
 
 #include "../common/file_io/lines.h"
 #include "../common/config_handler/config_handler.h"
 #include "../common/geo_space/geo_space.h"
 #include "../pre_processing/Tweet.h"
-#include "../pre_processing/crawled_data_parser.h"
+#include "../pre_processing/data_parser.h"
 #include "sliding_window/sliding_window.h"
 #include "keyword_extraction/keyword_extraction.h"
 #include "tweet_similarity/similarity_handler.h"
@@ -30,6 +31,7 @@ using common::file_io::FileMode;
 using common::file_io::read_lines::linesInFile;
 using common::file_io::FileReaderNormal;
 using common::file_io::FileWriterNormal;
+using common::file_io::SplitPath;
 using common::config_handler::ConfigFileHandler;
 using common::geo_space::Point;
 using common::geo_space::Space;
@@ -61,9 +63,11 @@ namespace EventTweet::TweetStream {
 	public:
 		TweetStreamProcess(ConfigFileHandler& config_file_handler);
 
+        ~TweetStreamProcess();
+
 		time_duration::sec_type ToTimeDuration(std::string&& time_str_format);
 
-        bool ProcessGLOVE(DataParser& json_parser, SnapShot& snapshot, std::string& filename);
+        bool ProcessGLOVE(DataParser& json_parser, SnapShot& snapshot, ConfigFileHandler& config_file_handler);
 
 		bool StreamProcess(FileReader& fileReader, ConfigFileHandler& config_file_handler);
 	};

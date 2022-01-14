@@ -9,30 +9,44 @@ namespace EventTweet::TweetStream {
 		this->start_time = time_from_string(start_time_str);
 	}
 
-	time_duration::sec_type TweetStreamProcess::ToTimeDuration(std::string&& time_str_format) {
+    TweetStreamProcess::~TweetStreamProcess() {
+        this->time_interval = 0;
+        auto start_time_str = "";
+        this->start_time = time_from_string(start_time_str);
+    }
+
+    time_duration::sec_type TweetStreamProcess::ToTimeDuration(std::string&& time_str_format) {
 		ptime current_time = time_from_string(time_str_format);
 		time_duration duration = current_time - start_time;
 		return duration.total_seconds();
 	}
 
-    bool TweetStreamProcess::ProcessGLOVE(DataParser &json_parser, SnapShot &snapshot, std::string& filename) {
+    bool TweetStreamProcess::ProcessGLOVE(DataParser &json_parser, SnapShot &snapshot,
+                                          ConfigFileHandler &config_file_handler) {
+        bool rtn = false;
+
+        std::string embedding_dict = config_file_handler.GetValue("embedding_dict");
+        std::string filename = config_file_handler.GetValue("word_need_embedding");
+        std::string embedded_filename = config_file_handler.GetValue("word_after_embedding");
+        std::string python_file = config_file_handler.GetValue("process_word_embedding");
+
         // group filename for each snapshot
         std::string post_fix = "_" + std::to_string(snapshot.GetIndex());
-        std::size_t pos = filename.rfind('.');
-        std::string need_embedding_file;
-        std::string extension;
-        if (pos != std::string::npos) {
-            need_embedding_file = filename.substr(0, std::distance(filename.begin(), filename.begin() + pos));
-            extension = filename.substr(pos);
-        }
+        auto rtn_strings1 = SplitPath(filename);
+        std::string need_embedding_file = rtn_strings1[0];
+        std::string extension = rtn_strings1[1];
+        auto rtn_strings2 = SplitPath(embedded_filename);
+        std::string embedded_file = rtn_strings2[0];
         need_embedding_file += (post_fix + extension);
+        embedded_file += (post_fix + extension);
+
         std::ifstream file_stream(need_embedding_file);
         FileWriterNormal file_writer;
         file_writer.open(need_embedding_file, FileMode::text);
         if (file_stream.peek() != std::ifstream::traits_type::eof()) {
             std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
                       << " Invalid file." << std::endl;
-            return false;
+            return rtn;
         }
 
         auto& tweet_map = snapshot.GetTweetMap();
@@ -44,16 +58,42 @@ namespace EventTweet::TweetStream {
             file_writer.write(buffer);
         }
         file_writer.close();
-        //std::remove(need_embedding_file.c_str()); // delete file
 
-        if (!file_stream.fail()) {
-            std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
-                      << " File not empty." << std::endl;
-            return false;
+        // execute python script
+        int argument_number = 4;
+        int argc = argument_number;
+        std::size_t argv_size = 1024;
+        wchar_t* wargv[argument_number];
+        wargv[0] = Py_DecodeLocale(python_file.c_str(), &argv_size);
+        wargv[1] = Py_DecodeLocale(embedding_dict.c_str(), &argv_size);
+        wargv[2] = Py_DecodeLocale(need_embedding_file.c_str(), &argv_size);
+        wargv[3] = Py_DecodeLocale(embedded_file.c_str(), &argv_size);
+
+        Py_Initialize();
+        if (!Py_IsInitialized()) {
+            return rtn;
         }
+        PyRun_SimpleString("import sys");
+        PySys_SetArgv(argc, wargv);
+        FileReaderNormal file_reader;
+        file_reader.open(python_file, FileMode::text);
+        if (PyRun_SimpleFile(file_reader.GetFilePointer(), python_file.c_str()) != 0) {
+            return rtn;
+        }
+        file_reader.close();
+        Py_Finalize();
 
-        // process file
-        return true;
+        file_reader.open(embedded_file, FileMode::text);
+        for (std::string_view line : linesInFile(std::move(file_reader))) {
+            std::string json_tweet = std::string(line);
+            std::cout << "S";
+        }
+        // delete file
+        std::remove(need_embedding_file.c_str());
+        std::remove(embedded_file.c_str());
+
+        rtn = true;
+        return rtn;
     }
 
 	bool TweetStreamProcess::StreamProcess(FileReader& file_reader, ConfigFileHandler& config_file_handler) {
@@ -68,7 +108,6 @@ namespace EventTweet::TweetStream {
 		int const window_size = sliding_window.GetWindowSize();
 		int const history_length = history_sequence_set.GetHistoryLength();
 
-        std::string word_need_embedding = config_file_handler.GetValue("word_need_embedding");
 		// iterate all tweets
         for (std::string_view line : linesInFile(std::move(file_reader))) {
 			std::string json_tweet = std::string(line);
@@ -107,11 +146,10 @@ namespace EventTweet::TweetStream {
                         continue;
                     }
                     snapshot.SetBurstyWords(std::move(bursty_word_set));
-
                     // 2. compute tweet similarity and predict location
                     if (GLOVE) {
                         // word embedding using GLOVE
-                        if (ProcessGLOVE(json_parser, snapshot, word_need_embedding)) {
+                        if (ProcessGLOVE(json_parser, snapshot, config_file_handler)) {
 
                         }
                     }

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 add_compile_options(-pipe -O2 -Wall)
 add_library(pre_processing SHARED
-        crawled_data_parser.cpp
+        data_parser.cpp
 )
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)

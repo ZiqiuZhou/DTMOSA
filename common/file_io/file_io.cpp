@@ -77,4 +77,15 @@ namespace common::file_io {
             return std::ferror(file.get()) == 0 && numElementsWritten == buffer.size();
         }
     }
+
+    std::vector<std::string> SplitPath(std::string& filename) {
+        std::size_t pos = filename.rfind('.');
+        std::string filename_new;
+        std::string extension;
+        if (pos != std::string::npos) {
+            filename_new = filename.substr(0, std::distance(filename.begin(), filename.begin() + pos));
+            extension = filename.substr(pos);
+        }
+        return {filename_new, extension};
+    }
 } // namespace arithmetic_expression_::file_reader
