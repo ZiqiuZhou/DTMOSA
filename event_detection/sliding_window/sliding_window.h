@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <deque>
+#include <algorithm>
+#include <functional>
 #include <iterator>
 
 #include "../pre_processing/Tweet.h"
@@ -163,7 +165,7 @@ namespace EventTweet::SlidingWindow {
 
         void CollectTweet(Tweet&& tweet);
 
-        void ComputeTweetVectorization();
+        void ComputeTweetVectorization(ConfigFileHandler& config_file_handler);
 	};
 
 	class Window {

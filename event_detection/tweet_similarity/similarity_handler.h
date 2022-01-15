@@ -141,6 +141,8 @@ namespace EventTweet::TweetSimilarity {
 
         double TextualImpactProcess(Tweet& tweet_lhs, Tweet& tweet_rhs);
 
+        double CosineTextualImpactProcess(Tweet& tweet_lhs, Tweet& tweet_rhs);
+
         double GeographicalImpactProcess(Tweet& tweet_lhs, Tweet& tweet_rhs);
 
         TweetTextualDistMap& GetTextualDistMap();
@@ -150,6 +152,8 @@ namespace EventTweet::TweetSimilarity {
         std::unordered_map<std::string, int>& GetTweetPositionMap();
 
     public:
+        bool embedding = false;
+
         friend class TweetLocationPredictor;
     };
 

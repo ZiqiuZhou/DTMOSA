@@ -158,15 +158,19 @@ namespace EventTweet::TweetStream {
                         continue;
                     }
                     snapshot.SetBurstyWords(std::move(bursty_word_set));
+
                     // 2. compute tweet similarity and predict location
                     if (GLOVE) {
                         // word embedding using GLOVE
                         if (ProcessGLOVE(json_parser, snapshot, config_file_handler)) {
-                            snapshot.ComputeTweetVectorization();
+                            snapshot.ComputeTweetVectorization(config_file_handler);
                         }
                     }
                     snapshot.GenerateWordIndexMap();
                     TweetSimilarityHandler similarity_handler(snapshot, config_file_handler);
+                    if (GLOVE) {
+                        similarity_handler.embedding = true;
+                    }
                     similarity_handler.Init()
                                       .GenerateSimMap();
                     TweetLocationPredictor location_predictor(config_file_handler);

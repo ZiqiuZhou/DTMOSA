@@ -75,14 +75,30 @@ namespace EventTweet::SlidingWindow {
         return ;
     }
 
-    void SnapShot::ComputeTweetVectorization() {
+    void SnapShot::ComputeTweetVectorization(ConfigFileHandler& config_file_handler) {
+        int embedding_dim = config_file_handler.GetValue("embedding_dim", 25);
         auto& tweet_map = GetTweetMap();
-//        for (auto& id_tweet : tweet_map) {
-//            Tweet& tweet = id_tweet.second;
-//            if (!tweet.GetWordEmbedding().empty()) {
-//
-//            }
-//        }
+        for (auto& id_tweet : tweet_map) {
+            Tweet& tweet = id_tweet.second;
+            if (!tweet.GetWordEmbedding().empty()) {
+                auto& word_embedding_list = tweet.GetWordEmbedding();
+                std::vector<double> tweet_vectorization(embedding_dim, 0.);
+
+                if (word_embedding_list.size() == 1) {
+                    tweet_vectorization = word_embedding_list[0].second;
+                } else {
+                    for (auto& word_vector : word_embedding_list) {
+                        double weight = word_vector.first;
+                        std::vector<double>& word_vectorization = word_vector.second;
+                        std::for_each(word_vectorization.begin(), word_vectorization.end(),
+                                      [&weight](double &ele) { ele *= weight; });
+                        std::transform(tweet_vectorization.begin(), tweet_vectorization.end(),
+                                       word_vectorization.begin(), tweet_vectorization.begin(), std::plus<double>());
+                    }
+                }
+                tweet.SetTweetEmbedding(std::move(tweet_vectorization));
+            }
+        }
     }
 
 	SnapShot& Window::GetOldest() {
