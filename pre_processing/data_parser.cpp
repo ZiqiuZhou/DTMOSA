@@ -128,7 +128,6 @@ namespace PreProcessing::JsonParser {
                         vectorization.push_back(ele.GetDouble());
                     }
                     word_embedding.emplace_back(std::make_pair(weight, vectorization));
-                    std::cout << "S";
                 }
             } else {
                 return false;

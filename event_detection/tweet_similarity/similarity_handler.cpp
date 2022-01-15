@@ -160,6 +160,29 @@ namespace EventTweet::TweetSimilarity {
         return scores;
     }
 
+    double TweetSimilarityHandler::CosineTextualImpactProcess(Tweet& tweet_lhs, Tweet& tweet_rhs) {
+        double similarity_score = 0.;
+        if (tweet_lhs.GetTweetEmbedding().empty() || tweet_rhs.GetTweetEmbedding().empty()) {
+            return similarity_score;
+        }
+
+        std::vector<double>& tweet_embedding_lhs = tweet_lhs.GetTweetEmbedding();
+        std::vector<double>& tweet_embedding_rhs = tweet_rhs.GetTweetEmbedding();
+        // L2-norm
+        double norm_lhs = 0.;
+        double norm_rhs = 0.;
+        for (std::size_t i = 0; i < tweet_embedding_lhs.size(); ++i) {
+            norm_lhs += tweet_embedding_lhs[i] * tweet_embedding_lhs[i];
+            norm_rhs += tweet_embedding_rhs[i] * tweet_embedding_rhs[i];
+        }
+        norm_lhs = sqrt(norm_lhs);
+        norm_rhs = sqrt(norm_rhs);
+
+        double product_result = std::inner_product(tweet_embedding_lhs.begin(), tweet_embedding_lhs.end(), tweet_embedding_rhs.begin(), 0.);
+        similarity_score = product_result / (norm_lhs * norm_rhs);
+        return similarity_score / 2. + 0.5;
+    }
+
     double TweetSimilarityHandler::TextualImpactProcess(Tweet& tweet_lhs, Tweet& tweet_rhs) {
         double similarity_score = 0.;
 
@@ -189,8 +212,8 @@ namespace EventTweet::TweetSimilarity {
                                                     inverted_word_bag_rhs);
         double score_for_tweet_right = TextualImpact(word_index_map_rhs, vertex_flag, word_scores_map,
                                                      inverted_word_bag_lhs);
-        similarity_score = (score_for_tweet_left * score_for_tweet_right) /
-                           (word_index_map_lhs.size() * word_index_map_rhs.size());
+        similarity_score = (score_for_tweet_left + score_for_tweet_right) /
+                           (2 * word_index_map_lhs.size() * word_index_map_rhs.size());
         return similarity_score;
     }
 
@@ -230,7 +253,12 @@ namespace EventTweet::TweetSimilarity {
                 Tweet tweet_lhs = (*iter_i).second;
                 std::string tweet_id_j = (*iter_j).first;
                 Tweet tweet_rhs = (*iter_j).second;
-                double textual_score = TextualImpactProcess(tweet_lhs, tweet_rhs);
+                double textual_score;
+                if (embedding) {
+                    textual_score = CosineTextualImpactProcess(tweet_lhs, tweet_rhs);
+                } else {
+                    textual_score = TextualImpactProcess(tweet_lhs, tweet_rhs);
+                }
 
                 double spatial_score = GeographicalImpactProcess(tweet_lhs, tweet_rhs);
                 tweet_spatial_dist_map(index_i, index_j) = spatial_score;

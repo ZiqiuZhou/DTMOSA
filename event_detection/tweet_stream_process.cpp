@@ -3,6 +3,14 @@
 #include "tweet_stream_process.h"
 
 namespace EventTweet::TweetStream {
+    std::chrono::system_clock::time_point time_from_string(std::string& time_string) {
+        std::tm t = {};
+        std::istringstream ss(time_string);
+        ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
+        auto time_point = std::chrono::system_clock::from_time_t(std::mktime(&t));
+        return time_point;
+    }
+
 	TweetStreamProcess::TweetStreamProcess(ConfigFileHandler& config_file_handler) {
 		this->time_interval = config_file_handler.GetValue("snapshot_interval", 1);
 		auto start_time_str = config_file_handler.GetValue("start_time");
@@ -12,13 +20,12 @@ namespace EventTweet::TweetStream {
     TweetStreamProcess::~TweetStreamProcess() {
         this->time_interval = 0;
         auto start_time_str = "";
-        this->start_time = time_from_string(start_time_str);
     }
 
-    time_duration::sec_type TweetStreamProcess::ToTimeDuration(std::string&& time_str_format) {
-		ptime current_time = time_from_string(time_str_format);
-		time_duration duration = current_time - start_time;
-		return duration.total_seconds();
+    int TweetStreamProcess::ToTimeDuration(std::string&& time_str_format) {
+        std::chrono::system_clock::time_point current_time = time_from_string(time_str_format);
+        std::chrono::duration<float> duration = current_time - start_time;
+		return duration.count();
 	}
 
     bool TweetStreamProcess::ProcessGLOVE(DataParser &json_parser, SnapShot &snapshot,
@@ -147,19 +154,23 @@ namespace EventTweet::TweetStream {
                         current_snapshot_index++;
                         snapshot.SetIndex(current_snapshot_index);
                         int step = duration / time_interval;
-                        start_time += seconds(step * time_interval);
+                        start_time += std::chrono::seconds(step * time_interval);
                         continue;
                     }
                     snapshot.SetBurstyWords(std::move(bursty_word_set));
+
                     // 2. compute tweet similarity and predict location
                     if (GLOVE) {
                         // word embedding using GLOVE
                         if (ProcessGLOVE(json_parser, snapshot, config_file_handler)) {
-
+                            snapshot.ComputeTweetVectorization(config_file_handler);
                         }
                     }
                     snapshot.GenerateWordIndexMap();
                     TweetSimilarityHandler similarity_handler(snapshot, config_file_handler);
+                    if (GLOVE) {
+                        similarity_handler.embedding = true;
+                    }
                     similarity_handler.Init()
                                       .GenerateSimMap();
                     TweetLocationPredictor location_predictor(config_file_handler);
@@ -180,7 +191,7 @@ namespace EventTweet::TweetStream {
 				current_snapshot_index++;
 				snapshot.SetIndex(current_snapshot_index);
 				int step = duration / time_interval;
-				start_time += seconds(step * time_interval);
+				start_time += std::chrono::seconds(step * time_interval);
 			}
 			snapshot.GenerateUserTweetMap(tweet);
 			snapshot.GenerateWordTweetPair(tweet);

@@ -39,6 +39,8 @@ namespace PreProcessing::TweetParser {
 
         std::vector<std::pair<double, std::vector<double>>> word_embedding; // (word_weight, vectorization representation of word)
 
+        std::vector<double> tweet_embedding;
+
         bool need_further_predict = false;
 
         int index = 0;
@@ -48,6 +50,7 @@ namespace PreProcessing::TweetParser {
             need_further_predict = false;
 			word_bag = { };
             word_embedding = { };
+            tweet_embedding = { };
 		}
 
 		~Tweet() {
@@ -57,6 +60,7 @@ namespace PreProcessing::TweetParser {
             context.clear();
 			word_bag.clear();
             word_embedding.clear();
+            tweet_embedding.clear();
 		}
 
 		Tweet(const Tweet& tweet) {
@@ -66,6 +70,7 @@ namespace PreProcessing::TweetParser {
             this->context = tweet.context;
 			this->word_bag = tweet.word_bag;
             this->word_embedding = tweet.word_embedding;
+            this->tweet_embedding = tweet.tweet_embedding;
 			this->location.longitude = tweet.location.longitude;
 			this->location.latitude = tweet.location.latitude;
 			this->need_further_predict = tweet.need_further_predict;
@@ -88,6 +93,7 @@ namespace PreProcessing::TweetParser {
             this->context = std::exchange(tweet.context, "");
 			this->word_bag = std::exchange(tweet.word_bag, { });
             this->word_embedding = std::exchange(tweet.word_embedding, { });
+            this->tweet_embedding = std::exchange(tweet.tweet_embedding, { });
 			this->location.longitude = std::exchange(tweet.location.longitude, 0.);
 			this->location.latitude = std::exchange(tweet.location.latitude, 0.);
 			this->need_further_predict = std::exchange(tweet.need_further_predict, false);
@@ -104,6 +110,7 @@ namespace PreProcessing::TweetParser {
             this->context = std::exchange(tweet.context, "");
 			this->word_bag = std::exchange(tweet.word_bag, { });
             this->word_embedding = std::exchange(tweet.word_embedding, { });
+            this->tweet_embedding = std::exchange(tweet.tweet_embedding, { });
 			this->location.longitude = std::exchange(tweet.location.longitude, 0.);
 			this->location.latitude = std::exchange(tweet.location.latitude, 0.);
 			this->need_further_predict = std::exchange(tweet.need_further_predict, false);
@@ -237,6 +244,22 @@ namespace PreProcessing::TweetParser {
 
         std::vector<std::pair<double, std::vector<double>>>& GetWordEmbedding() {
             return this->word_embedding;
+        }
+
+        void SetTweetEmbedding(const std::vector<double>& _tweet_embedding) {
+            if (!_tweet_embedding.empty()) {
+                this->tweet_embedding = _tweet_embedding;
+            }
+        }
+
+        void SetTweetEmbedding(std::vector<double>&& _tweet_embedding) {
+            if (!_tweet_embedding.empty()) {
+                this->tweet_embedding = std::exchange(_tweet_embedding, { });
+            }
+        }
+
+        std::vector<double>& GetTweetEmbedding() {
+            return this->tweet_embedding;
         }
 
         void SetPredictFlag(bool flag) {
