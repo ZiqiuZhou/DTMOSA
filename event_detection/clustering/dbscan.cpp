@@ -4,33 +4,13 @@
 #include "dbscan.h"
 
 namespace EventTweet::Clustering {
-    DBSCAN::DBSCAN(SnapShot &_snapshot, TweetSimilarity::TweetSimilarityHandler &tweet_similarity_handler,
-                   ConfigFileHandler &config_file_handler): snapshot(_snapshot) {
-        auto& spatial_map = tweet_similarity_handler.GetSpatialDistMap();
-        auto& textual_map = tweet_similarity_handler.GetTextualDistMap();
-        double bandwidth = config_file_handler.GetValue("kernel_bandwidth", 80.);
-        dist_map = 0.5 * spatial_map;
-        dist_map += (0.5 * bandwidth * textual_map);
-        minimum_points = config_file_handler.GetValue("minimum_points", 10);
-        epsilon = config_file_handler.GetValue("epsilon", 10.0);
-
-        auto& tweet_map = snapshot.GetTweetMap();
-        for (auto& tweet_kv: tweet_map) {
-            Tweet& tweet = tweet_kv.second;
-            Point point(tweet);
-            points.emplace_back(std::move(point));
-        }
-
-        tweet_position_map = tweet_similarity_handler.GetTweetPositionMap();
+    DBSCAN::DBSCAN(SnapShot &_snapshot,
+                   TweetSimilarity::TweetSimilarityHandler &tweet_similarity_handler,
+                   ConfigFileHandler &config_file_handler)
+                   : BaseClustering(_snapshot, tweet_similarity_handler,config_file_handler) {
     }
 
     DBSCAN::~DBSCAN() {
-        dist_map.setZero();
-        //snapshot.Reset();
-        points.clear();
-        tweet_position_map.clear();
-        minimum_points = 0;
-        epsilon = 0.;
     }
 
     int DBSCAN::Cluster() {
@@ -38,7 +18,7 @@ namespace EventTweet::Clustering {
             return FAILURE;
         }
         for (auto& point : points) {
-            if (point.cluster_id == UNCLASSIFIED) {
+            if (point.cluster_id == UNDEFINED) {
                 if (ExpandCluster(point) == FAILURE) {
                     continue;
                 }
@@ -80,7 +60,7 @@ namespace EventTweet::Clustering {
                 if (seed_point.cluster_id == NOISE) {
                     seed_point.cluster_id = cluster_id;
                 }
-                if (seed_point.cluster_id != UNCLASSIFIED) {
+                if (seed_point.cluster_id != UNDEFINED) {
                     continue;
                 }
                 seed_point.cluster_id = cluster_id;
@@ -98,27 +78,5 @@ namespace EventTweet::Clustering {
             }
             return SUCCESS;
         }
-    }
-
-    std::vector<int> DBSCAN::CalculateCluster(Point& point_lhs) {
-        int index = 0;
-        std::vector<int> cluster_index;
-        for (auto& point_rhs : points) {
-            if (CalculateDistance(point_lhs, point_rhs) <= epsilon) {
-                cluster_index.push_back(index);
-            }
-            ++index;
-        }
-        return cluster_index;
-    }
-
-    double DBSCAN::CalculateDistance(const Point& point_lhs, const Point& point_rhs) {
-        const std::string& tweet_lhs_id = point_lhs.tweet_id;
-        const std::string& tweet_rhs_id = point_rhs.tweet_id;
-        int index_lhs = tweet_position_map[tweet_lhs_id];
-        int index_rhs = tweet_position_map[tweet_rhs_id];
-
-        double distance = dist_map(index_lhs, index_rhs);
-        return distance;
     }
 }

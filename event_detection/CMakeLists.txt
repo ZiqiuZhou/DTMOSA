@@ -13,7 +13,9 @@ add_library(event_detection SHARED
         "tweet_similarity/co_occurrence_graph.cpp"
         "tweet_similarity/random_walk_with_restart.cpp"
         "tweet_similarity/similarity_handler.cpp"
-        "clustering/dbscan.cpp")
+        "clustering/clustering.cpp"
+        "clustering/dbscan.cpp"
+        "clustering/optics.cpp")
 
 set(PYTHON_INCLUDE_DIR "/usr/include/python3.8")
 set(PYTHON_LIBRARIES "/usr/lib/x86_64-linux-gnu/libpython3.8.so")
