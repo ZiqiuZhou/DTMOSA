@@ -160,7 +160,7 @@ namespace EventTweet::TweetStream {
                     snapshot.SetBurstyWords(std::move(bursty_word_set));
 
                     // 2. compute tweet similarity and predict location
-                    if (GLOVE) {
+                    if (has_GLOVE) {
                         // word embedding using GLOVE
                         if (ProcessGLOVE(json_parser, snapshot, config_file_handler)) {
                             snapshot.ComputeTweetVectorization(config_file_handler);
@@ -168,7 +168,7 @@ namespace EventTweet::TweetStream {
                     }
                     snapshot.GenerateWordIndexMap();
                     TweetSimilarityHandler similarity_handler(snapshot, config_file_handler);
-                    if (GLOVE) {
+                    if (has_GLOVE) {
                         similarity_handler.embedding = true;
                     }
                     similarity_handler.Init()
@@ -177,12 +177,17 @@ namespace EventTweet::TweetStream {
                     location_predictor.Predict(similarity_handler);
 
                     // 3. clustering
-                    DBSCAN dbscan(snapshot, similarity_handler, config_file_handler);
-                    dbscan.Cluster();
-                    auto& points = dbscan.GetPoints();
-                    for (auto point: points) {
-                        std::cout << std::setprecision(10) << point.longitude << " " << std::setprecision(10) << point.latitude << " " << point.cluster_id << std::endl;
+                    std::unique_ptr<BaseClustering> cluster_ptr;
+                    if (has_OPTICS) {
+                        cluster_ptr = std::make_unique<OPTICS>(snapshot, similarity_handler, config_file_handler);
+                    } else {
+                        cluster_ptr = std::make_unique<DBSCAN>(snapshot, similarity_handler, config_file_handler);
                     }
+                    cluster_ptr->Cluster();
+                    auto& points = cluster_ptr->GetResults();
+//                    for (const auto& point: points) {
+//                        std::cout << std::setprecision(10) << point.longitude << " " << std::setprecision(10) << point.latitude << " " << point.cluster_id << std::endl;
+//                    }
                 }
 				// 4. trigger sliding window to slide and switch to next snapshot
 				sliding_window.Slide(snapshot);

@@ -180,7 +180,7 @@ namespace EventTweet::TweetSimilarity {
 
         double product_result = std::inner_product(tweet_embedding_lhs.begin(), tweet_embedding_lhs.end(), tweet_embedding_rhs.begin(), 0.);
         similarity_score = product_result / (norm_lhs * norm_rhs);
-        return similarity_score / 2. + 0.5;
+        return similarity_score - 0.5;
     }
 
     double TweetSimilarityHandler::TextualImpactProcess(Tweet& tweet_lhs, Tweet& tweet_rhs) {
