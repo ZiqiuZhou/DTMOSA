@@ -46,7 +46,7 @@ namespace PreProcessing::OpenStreetMapParser {
             grid_idx = lhs.grid_idx;
         }
 
-        OpenStreetMap& OpenStreetMap(const OpenStreetMap& lhs) {
+        OpenStreetMap& operator=(const OpenStreetMap& lhs) {
             if (&lhs == this) {
                 return *this;
             }
@@ -61,41 +61,53 @@ namespace PreProcessing::OpenStreetMapParser {
         }
 
         OpenStreetMap(OpenStreetMap&& rhs) {
-            osm_id = std::exchange(lhs.osm_id, "");
-            create_time = std::exchange(lhs.create_time, "");
-            osm_type = std::exchange(lhs.osm_type, "");
-            coordinates = std::exchange(lhs.coordinates, {});
-            tags = std::exchange(lhs.tags, {});
-            grid_idx = std::exchange(lhs.grid_idx, 0);
+            osm_id = std::exchange(rhs.osm_id, "");
+            create_time = std::exchange(rhs.create_time, "");
+            osm_type = std::exchange(rhs.osm_type, "");
+            coordinates = std::exchange(rhs.coordinates, {});
+            tags = std::exchange(rhs.tags, {});
+            grid_idx = std::exchange(rhs.grid_idx, 0);
         }
 
-        OpenStreetMap& OpenStreetMap(OpenStreetMap&& rhs) {
+        OpenStreetMap& operator=(OpenStreetMap&& rhs) {
             if (&rhs == this) {
                 return *this;
             }
 
-            osm_id = std::exchange(lhs.osm_id, "");
-            create_time = std::exchange(lhs.create_time, "");
-            osm_type = std::exchange(lhs.osm_type, "");
-            coordinates = std::exchange(lhs.coordinates, {});
-            tags = std::exchange(lhs.tags, {});
-            grid_idx = std::exchange(lhs.grid_idx, 0);
+            osm_id = std::exchange(rhs.osm_id, "");
+            create_time = std::exchange(rhs.create_time, "");
+            osm_type = std::exchange(rhs.osm_type, "");
+            coordinates = std::exchange(rhs.coordinates, {});
+            tags = std::exchange(rhs.tags, {});
+            grid_idx = std::exchange(rhs.grid_idx, 0);
             return *this;
         }
 
-        void SetOSMID(std::string& _id) {
+        void SetOSMID(const std::string& _id) {
             this->osm_id = _id;
         }
 
-        void SetCreateTime(std::string& _create_time) {
+        void SetOSMID(std::string&& _id) {
+            this->osm_id = std::move(_id);
+        }
+
+        void SetCreateTime(const std::string& _create_time) {
             this->create_time = _create_time;
         }
 
-        void SetOSMType(std::string& _type) {
+        void SetCreateTime(std::string&& _create_time) {
+            this->create_time = std::move(_create_time);
+        }
+
+        void SetOSMType(const std::string& _type) {
             this->osm_type = _type;
         }
 
-        void SetCoordinates(std::vector<std::pair<double, double> >& _coordinates) {
+        void SetOSMType(std::string&& _type) {
+            this->osm_type = std::move(_type);
+        }
+
+        void SetCoordinates(const std::vector<std::pair<double, double> >& _coordinates) {
             this->coordinates = _coordinates;
         }
 
@@ -103,12 +115,20 @@ namespace PreProcessing::OpenStreetMapParser {
             this->coordinates = std::move(_coordinates);
         }
 
-        void SetTags(std::unordered_map<std::string, std::string>& _tags) {
+        std::vector<std::pair<double, double> >& GetCoordinates() {
+            return this->coordinates;
+        }
+
+        void SetTags(const std::unordered_map<std::string, std::string>& _tags) {
             this->tags = _tags;
         }
 
         void SetTags(std::unordered_map<std::string, std::string>&& _tags) {
             this->tags = std::move(_tags);
+        }
+
+        std::unordered_map<std::string, std::string>& GetTags() {
+            return this->tags;
         }
 
         void SetGridIndex(int index) {
