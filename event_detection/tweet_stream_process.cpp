@@ -143,6 +143,10 @@ namespace EventTweet::TweetStream {
 			auto duration = ToTimeDuration(std::move(timestamp));
 			// process the entire snapshot
 			if (time_interval - duration <= 0) {
+                if (snapshot.GetIndex() > 28) {
+                    break;
+                }
+
                 std::cout << "process snapshot: " << snapshot.GetIndex() << std::endl;
 				// construct history usage
 				if (snapshot.GetIndex() < history_length) {

@@ -188,12 +188,14 @@ find_package(Boost)
 add_subdirectory("common")
 add_subdirectory("pre_processing")
 add_subdirectory("event_detection")
+add_subdirectory("osm_semantic_annotation")
 
 target_link_libraries(GeoBurst_OSM
         PRIVATE
         common
         pre_processing
-        event_detection)
+        event_detection
+        osm_semantic_annotation)
 
 enable_testing()
 

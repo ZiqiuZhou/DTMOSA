@@ -12,6 +12,7 @@
 #include <python3.8/Python.h>
 
 #include "../common/file_io/lines.h"
+#include "../common/file_io/file_io.h"
 #include "../common/config_handler/config_handler.h"
 #include "../common/geo_space/geo_space.h"
 #include "../pre_processing/Tweet.h"

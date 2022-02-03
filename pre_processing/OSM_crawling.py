@@ -2,7 +2,7 @@ import requests
 import json
 
 URL = 'https://api.ohsome.org/v1/contributions/latest/geometry'
-data = {"bboxes": "-95.575128, 29.534661, -95.165277, 29.893392", "time": "2017-08-27,2017-09-10", "showMetadata": "yes", "properties": "metadata,tags"}
+data = {"bboxes": "-95.575128, 29.534661, -95.165277, 29.893392", "time": "2017-09-03,2017-09-10", "showMetadata": "yes", "properties": "metadata,tags"}
 
 osm_id_set = set()
 
@@ -33,19 +33,21 @@ def parse_building(raw_objects, f):
             continue
         
         print(obj)
-        coordinates = obj['geometry']['coordinates']
+        coordinates = obj['geometry']['coordinates'][0]
         tags = {}
         osm_id = obj['properties']['@osmId']
         if osm_id_set in osm_id_set:
             continue
         else:
             osm_id_set.add(osm_id)
+        create_time = ""
         for key, value in obj['properties'].items():
             if key == '@timestamp':
-                tags[key] = value
+                create_time = value
             if key[0] != '@':
                 tags[key] = value
-        record = {"osm_id": osm_id, "coordinates": coordinates, "tags": tags}
+        record = {"osm_id": osm_id, "timestamp": create_time, "type": obj['geometry']['type'],
+                  "coordinates": coordinates, "tags": tags}
         f.write(json.dumps(record, ensure_ascii=False) + '\n')
     return
 
@@ -67,12 +69,14 @@ def parse_road(raw_objects, f):
             continue
         else:
             osm_id_set.add(osm_id)
+        create_time = ""
         for key, value in obj['properties'].items():
             if key == '@timestamp':
-                tags[key] = value
+                create_time = value
             if key[0] != '@':
                 tags[key] = value
-        record = {"osm_id": osm_id, "coordinates": coordinates, "tags": tags}
+        record = {"osm_id": osm_id, "timestamp": create_time, "type": obj['geometry']['type'],
+                  "coordinates": coordinates, "tags": tags}
         f.write(json.dumps(record, ensure_ascii=False) + '\n')
 
 
@@ -86,5 +90,7 @@ if __name__ == "__main__":
     file_road = open(file_road_path, 'a', encoding="utf-8")
     crawl_process(filter_buildings, file_building, True)
     crawl_process(filter_roads, file_road, False)
+
+
     print("finished")
     
