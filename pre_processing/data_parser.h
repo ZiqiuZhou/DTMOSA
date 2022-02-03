@@ -5,12 +5,14 @@
 #include <string>
 
 #include "Tweet.h"
+#include "OpenStreetMap.h"
 #include "../include/rapidjson/document.h"
 #include "../include/rapidjson/writer.h"
 #include "../include/rapidjson/stringbuffer.h"
 #include "../include/rapidjson/error/en.h"
 
 using PreProcessing::TweetParser::Tweet;
+using PreProcessing::OpenStreetMapParser::OpenStreetMap;
 using rapidjson::Document;
 using rapidjson::Value;
 using rapidjson::SizeType;
@@ -37,6 +39,8 @@ namespace PreProcessing::JsonParser {
 		}
 
 		bool TweetParser(Tweet& tweet, std::string& json_tweet);
+
+        bool OpenStreetMapParser(OpenStreetMap& osm, std::string& json_osm);
 
         bool WordEmbeddingParser(std::string& json_tweet, std::unordered_map<std::string, Tweet>& tweet_map);
 
