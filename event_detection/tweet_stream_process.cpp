@@ -185,9 +185,9 @@ namespace EventTweet::TweetStream {
                     }
                     cluster_ptr->Cluster();
                     auto& points = cluster_ptr->GetResults();
-//                    for (const auto& point: points) {
-//                        std::cout << std::setprecision(10) << point.longitude << " " << std::setprecision(10) << point.latitude << " " << point.cluster_id << std::endl;
-//                    }
+                    for (const auto& point: points) {
+                        std::cout << std::setprecision(10) << point.longitude << " " << std::setprecision(10) << point.latitude << " " << point.cluster_id << std::endl;
+                    }
                 }
 				// 4. trigger sliding window to slide and switch to next snapshot
 				sliding_window.Slide(snapshot);
