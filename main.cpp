@@ -27,23 +27,23 @@ int main(int argc, char* argv[]) {
 
     TweetStreamProcess process(config_file_handler);
     if (argc == 2 && argv[1] == std::string("GLOVE")) {
-        process.GLOVE = true;
+        process.has_GLOVE = true;
     }
     if (argc == 2 && argv[1] == std::string("OPTICS")) {
-        process.OPTICS = true;
+        process.has_OPTICS = true;
     }
     if (argc == 3) {
         if (argv[1] == std::string("GLOVE")) {
-            process.GLOVE = true;
+            process.has_GLOVE = true;
         }
         if (argv[1] == std::string("OPTICS")) {
-            process.OPTICS = true;
+            process.has_OPTICS = true;
         }
         if (argv[2] == std::string("GLOVE")) {
-            process.GLOVE = true;
+            process.has_GLOVE = true;
         }
         if (argv[2] == std::string("OPTICS")) {
-            process.OPTICS = true;
+            process.has_OPTICS = true;
         }
     }
     process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);

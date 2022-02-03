@@ -29,6 +29,10 @@ namespace EventTweet::Clustering {
     public:
         int Cluster() override;
 
+        std::vector<Point>& GetResults() override{
+            return GetPoints();
+        }
+
         int ExpandCluster(Point& point);
     };
 }

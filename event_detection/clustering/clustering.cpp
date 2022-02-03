@@ -10,16 +10,17 @@ namespace EventTweet::Clustering {
             ConfigFileHandler &config_file_handler) : snapshot(_snapshot){
             auto& spatial_map = tweet_similarity_handler.GetSpatialDistMap();
             auto& textual_map = tweet_similarity_handler.GetTextualDistMap();
-            double bandwidth = config_file_handler.GetValue("kernel_bandwidth", 80.);
-            dist_map = 0.5 * spatial_map;
-            dist_map += (0.5 * bandwidth * textual_map);
+            dist_map = spatial_map;
+            dist_map += textual_map;
             minimum_points = config_file_handler.GetValue("minimum_points", 10);
             epsilon = config_file_handler.GetValue("epsilon", 10.0);
 
             auto& tweet_map = snapshot.GetTweetMap();
+            int index = 0;
             for (auto& tweet_kv: tweet_map) {
                 Tweet& tweet = tweet_kv.second;
                 Point point(tweet);
+                point.index = index++;
                 points.emplace_back(std::move(point));
             }
 
@@ -38,7 +39,7 @@ namespace EventTweet::Clustering {
         int index = 0;
         std::vector<int> cluster_index;
         for (auto& point_rhs : points) {
-            if (CalculateDistance(point_lhs, point_rhs) <= epsilon) {
+            if (point_lhs.tweet_id != point_rhs.tweet_id && CalculateDistance(point_lhs, point_rhs) <= epsilon) {
                 cluster_index.push_back(index);
             }
             ++index;

@@ -29,7 +29,7 @@ using Eigen::Dynamic;
 namespace EventTweet::Clustering {
 
     using DistMapType = Matrix<double, Dynamic, Dynamic, ColMajor>;
-    double const UNREACHABLE = std::numeric_limits<double>::max();
+    double const UNREACHABLE = 100;
 
     enum STATE {
         FAILURE = -4,
@@ -40,7 +40,10 @@ namespace EventTweet::Clustering {
         PROCESSED
     };
 
-    struct Point {
+    class Point {
+    public:
+        int index = 0;
+
         std::string tweet_id;
 
         double longitude = 0.;
@@ -52,7 +55,7 @@ namespace EventTweet::Clustering {
         // for OPTICS
         int processed = UNPROCESSED;
 
-        double core_dist = std::numeric_limits<double>::max();
+        double core_dist = UNREACHABLE;
 
         double reachability_dist = UNREACHABLE;
 
@@ -73,6 +76,7 @@ namespace EventTweet::Clustering {
         }
 
         ~Point() {
+            index = 0;
             word_bag.clear();
             tweet_id.clear();
             longitude = 0.;
@@ -81,16 +85,19 @@ namespace EventTweet::Clustering {
             processed = 0;
             core_dist = 0.;
             reachability_dist = 0.;
+            neighbor_num = 0;
         }
 
         Point(const Point& _point) {
+            this->index = _point.index;
+            this->tweet_id = _point.tweet_id;
             this->longitude = _point.longitude;
             this->latitude = _point.latitude;
             this->cluster_id = _point.cluster_id;
             this->processed = _point.processed;
             this->core_dist = _point.core_dist;
             this->reachability_dist = _point.reachability_dist;
-            this->tweet_id = _point.tweet_id;
+            this->neighbor_num = _point.neighbor_num;
             this->word_bag = _point.word_bag;
         }
 
@@ -104,6 +111,7 @@ namespace EventTweet::Clustering {
         }
 
         Point(Point&& _point) noexcept {
+            this->index = std::exchange(_point.index, 0.);
             this->longitude = std::exchange(_point.longitude, 0.);
             this->latitude = std::exchange(_point.latitude, 0.);
             this->cluster_id = std::exchange(_point.cluster_id, 0);
@@ -111,6 +119,7 @@ namespace EventTweet::Clustering {
             this->processed = std::exchange(_point.processed, 0);
             this->core_dist = std::exchange(_point.core_dist, 0.);
             this->reachability_dist = std::exchange(_point.reachability_dist, 0.);
+            this->neighbor_num = std::exchange(_point.neighbor_num, 0);
             this->word_bag = std::exchange(_point.word_bag, {});
         }
 
@@ -118,6 +127,7 @@ namespace EventTweet::Clustering {
             if (this == &_point) {
                 return *this;
             }
+            this->index = std::exchange(_point.index, 0.);
             this->longitude = std::exchange(_point.longitude, 0.);
             this->latitude = std::exchange(_point.latitude, 0.);
             this->cluster_id = std::exchange(_point.cluster_id, 0);
@@ -125,6 +135,7 @@ namespace EventTweet::Clustering {
             this->processed = std::exchange(_point.processed, 0);
             this->core_dist = std::exchange(_point.core_dist, 0.);
             this->reachability_dist = std::exchange(_point.reachability_dist, 0.);
+            this->neighbor_num = std::exchange(_point.neighbor_num, 0);
             this->word_bag = std::exchange(_point.word_bag, {});
             return *this;
         }
@@ -154,6 +165,8 @@ namespace EventTweet::Clustering {
 
     public:
         virtual int Cluster() = 0;
+
+        virtual std::vector<Point>& GetResults() = 0;
 
         std::vector<Point>& GetPoints() {
             return points;

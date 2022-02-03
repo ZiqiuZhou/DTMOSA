@@ -47,13 +47,13 @@ namespace EventTweet::Clustering {
             if (point.processed == UNPROCESSED) {
                 point.processed = PROCESSED;
                 order_list.emplace_back(point); // set point to output list
-                if (point.neighbor_num >= minimum_points) {
+                if (point.core_dist < UNREACHABLE - 5) {
                     // priority_queue to store seeds sorted by their reachability_distance
                     std::priority_queue<Point, std::vector<Point>, Cmp> seeds;
                     Update(point, seeds);
 
                     while (!seeds.empty()) {
-                        Point seed = seeds.top();
+                        Point& seed = points[seeds.top().index];
                         seeds.pop();
                         seed.processed = PROCESSED;
                         order_list.emplace_back(seed);
@@ -64,6 +64,8 @@ namespace EventTweet::Clustering {
                 }
             }
         }
+        GenerateClusters();
+
         return SUCCESS;
     }
 
@@ -73,7 +75,7 @@ namespace EventTweet::Clustering {
             Point& neighbor_point = points[neighbor_index];
             if (neighbor_point.processed == UNPROCESSED) {
                 double new_reachability_dist = std::max(point.core_dist, CalculateDistance(point, neighbor_point));
-                if (neighbor_point.reachability_dist == UNREACHABLE) { // point not in seeds
+                if (neighbor_point.reachability_dist > UNREACHABLE - 5) { // point not in seeds
                     neighbor_point.reachability_dist = new_reachability_dist;
                     seeds.push(neighbor_point);
                 } else { // point in seeds, check for improvement
@@ -108,5 +110,20 @@ namespace EventTweet::Clustering {
         return ;
     }
 
-
+    void OPTICS::GenerateClusters() {
+        std::vector<Point>& ordered_list = GetResults();
+        for (std::size_t i = 0; i < ordered_list.size(); ++i) {
+            if (ordered_list[i].reachability_dist > epsilon) {
+                ordered_list[i].cluster_id = NOISE;
+            } else {
+                cluster_id++;
+                while (i < ordered_list.size() && ordered_list[i].reachability_dist <= epsilon) {
+                    ordered_list[i].cluster_id = cluster_id;
+                    ++i;
+                }
+                --i;
+            }
+        }
+        return ;
+    }
 }

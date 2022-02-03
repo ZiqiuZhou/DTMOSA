@@ -42,6 +42,12 @@ namespace EventTweet::Clustering {
         void Update(Point& point, std::priority_queue<Point, std::vector<Point>, Cmp>& seeds);
 
         void MoveUpElement(Point& point, std::priority_queue<Point, std::vector<Point>, Cmp>& seeds);
+
+        void GenerateClusters();
+
+        std::vector<Point>& GetResults() override{
+            return this->order_list;
+        }
     };
 
 }

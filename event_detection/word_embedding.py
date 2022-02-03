@@ -56,6 +56,10 @@ def content_embedding(tweet_list, word_embedding_dict, f):
         if len(word_bag) == 1:
             word_weight = weight_dict[word_bag[0]]
             vectorization = json.loads(word_embedding_dict[word_bag[0]])
+            max_ele = max(vectorization)
+            min_ele = min(vectorization)
+            for i in range(len(vectorization)):
+                vectorization[i] = (vectorization[i] - min_ele) / (max_ele - min_ele + 1e-5)
             tweet_output['word_embedding'][word_bag[0]] = {'weight': word_weight, 'vectorization': vectorization}
         else:
             for word, weight in weight_dict.items():

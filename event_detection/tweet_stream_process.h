@@ -8,6 +8,7 @@
 #include <fstream>
 #include <cstdio>
 #include <iterator>
+#include <memory>
 #include <python3.8/Python.h>
 
 #include "../common/file_io/lines.h"
@@ -18,7 +19,9 @@
 #include "sliding_window/sliding_window.h"
 #include "keyword_extraction/keyword_extraction.h"
 #include "tweet_similarity/similarity_handler.h"
+#include "clustering/clustering.h"
 #include "clustering/dbscan.h"
+#include "clustering/optics.h"
 
 using PreProcessing::TweetParser::Tweet;
 using PreProcessing::JsonParser::DataParser;
@@ -40,7 +43,9 @@ using EventTweet::KeywordExtraction::HistorySequenceSet;
 using EventTweet::KeywordExtraction::WordUsageBaseline;
 using EventTweet::TweetSimilarity::TweetSimilarityHandler;
 using EventTweet::TweetSimilarity::TweetLocationPredictor;
+using EventTweet::Clustering::BaseClustering;
 using EventTweet::Clustering::DBSCAN;
+using EventTweet::Clustering::OPTICS;
 
 namespace EventTweet::TweetStream {
 
@@ -55,9 +60,9 @@ namespace EventTweet::TweetStream {
         std::chrono::system_clock::time_point start_time;
 
     public:
-        bool GLOVE = false;
+        bool has_GLOVE = false;
 
-        bool OPTICS = false;
+        bool has_OPTICS = false;
 
 	public:
 		TweetStreamProcess(ConfigFileHandler& config_file_handler);
