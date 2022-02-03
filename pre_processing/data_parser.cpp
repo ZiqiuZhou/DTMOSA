@@ -83,6 +83,77 @@ namespace PreProcessing::JsonParser {
 		return true;
 	}
 
+    bool DataParser::OpenStreetMapParser(OpenStreetMap& osm, std::string& json_osm) {
+        document.SetObject();
+        ParseResult parse_result = document.Parse(json_osm.c_str());
+
+        if (!parse_result) {
+            fprintf(stderr, "JSON parse error: %s (%u)",
+                    GetParseError_En(parse_result.Code()), parse_result.Offset());
+            exit(EXIT_FAILURE);
+        }
+
+        if (!(document.HasMember("osm_id") && document["osm_id"].IsString() && !document["tweet_id"].IsNull())) {
+            std::cout << "file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                      << " Invalid osm_id element in json." << std::endl;
+            return false;
+        } else {
+            osm.SetOSMID(document["osm_id"].GetString());
+        }
+
+        if (!(document.HasMember("timestamp") && document["timestamp"].IsString() && !document["timestamp"].IsNull())) {
+            std::cout << "file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                      << " Invalid timestamp element in json." << std::endl;
+            return false;
+        } else {
+            osm.SetCreateTime(document["timestamp"].GetString());
+        }
+
+        if (!(document.HasMember("type") && document["type"].IsString() && !document["type"].IsNull())) {
+            std::cout << "file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                      << " Invalid type element in json." << std::endl;
+            return false;
+        } else {
+            osm.SetOSMType(document["type"].GetString());
+        }
+
+        if (!(document.HasMember("coordinates") && document["coordinates"].IsArray() && !document["coordinates"].IsNull())) {
+            std::cout << "file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                      << " Invalid coordinate element in json." << std::endl;
+            return false;
+        }
+
+        const Value& coordinate_list = document["coordinates"];
+        auto& coordinates = osm.GetCoordinates();
+        for (Value::ConstMemberIterator iter = coordinate_list.MemberBegin();
+             iter != coordinate_list.MemberEnd(); ++iter) {
+            const Value& coordinate = iter->value;
+            double longitude = coordinate[0].GetDouble();
+            double latitude = coordinate[1].GetDouble();
+            coordinates.emplace_back(std::make_pair(longitude, latitude));
+        }
+
+        if (!(document.HasMember("tags") && document["tags"].IsObject() && !document["tags"].IsNull())) {
+            std::cout << "file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                      << " Invalid tags element in json." << std::endl;
+            return false;
+        }
+
+        const Value& tag_list = document["tags"];
+        auto& tags = osm.GetTags();
+        for (Value::ConstMemberIterator iter = tag_list.MemberBegin(); iter != tag_list.MemberEnd(); ++iter) {
+            if (!(iter->name.IsString() && !iter->name.IsNull()) || !(iter->value.IsString() && !iter->value.IsNull())) {
+                std::cout << "file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
+                          << " Invalid tag key_value in json." << std::endl;
+                return false;
+            }
+            std::string key = iter->name.GetString();
+            std::string value = iter->value.GetString();
+            tags[key] = value;
+        }
+        return true;
+    }
+
     bool DataParser::WordEmbeddingParser(std::string& json_tweet, std::unordered_map<std::string, Tweet>& tweet_map) {
         document.SetObject();
         ParseResult parse_result = document.Parse(json_tweet.c_str());
