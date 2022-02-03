@@ -23,7 +23,8 @@ int main(int argc, char* argv[]) {
     ConfigFileHandler config_file_handler = *ConfigFileHandler::GetInstance();
     config_file_handler.Load("/home/dietrich/master_thesis/GeoBurst_OSM/config.conf");
     auto& config_items = config_file_handler.config_items;
-    auto filename = config_items["crawled_data"];
+    auto filename_tweet = config_items["crawled_tweet"];
+    auto filename_osm = config_items["crawled_osm"];
 
     TweetStreamProcess process(config_file_handler);
     if (argc == 2 && argv[1] == std::string("GLOVE")) {
@@ -46,7 +47,7 @@ int main(int argc, char* argv[]) {
             process.has_OPTICS = true;
         }
     }
-    process.StreamProcess(*FileReader::open(filename, FileMode::text), config_file_handler);
+    process.StreamProcess(*FileReader::open(filename_tweet, FileMode::text), config_file_handler);
 
     std::cout << "finish.";
     return 0;
