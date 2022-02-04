@@ -91,6 +91,5 @@ if __name__ == "__main__":
     crawl_process(filter_buildings, file_building, True)
     crawl_process(filter_roads, file_road, False)
 
-
     print("finished")
     

@@ -46,66 +46,12 @@ namespace common::file_io {
         bool writeFile(FileHandle& file, std::span<char>& buffer);
     } // namespace detail
 
-    // Singleton
     class FileReader {
     private:
         detail::FileHandle file_;
 
-        FileReader(const std::filesystem::path& path, FileMode& mode)
-            : file_(std::move(detail::openFile(path, detail::FileAccessMode::read, mode))) {}
-
     public:
-        static FileReader* open(const std::filesystem::path& path, FileMode&& mode) {
-            static FileReader instance(path, mode);
-            return &instance;
-        }
-
-        [[nodiscard]] FileReadResult readTo(std::span<char>& buffer) {
-            FileReadResult result{};
-
-            if (detail::readFile(result, file_, buffer) != 0) {
-                throw std::runtime_error("failed to read from file");
-            }
-
-            return result;
-        }
-
-        void close() {
-            detail::closeFile(std::move(file_));
-        }
-    };
-
-    // Singleton
-    class FileWriter {
-    private:
-        detail::FileHandle file_;
-
-        FileWriter(const std::filesystem::path& path, FileMode& mode)
-            : file_(std::move(detail::openFile(path, detail::FileAccessMode::write, mode))) {}
-
-    public:
-        static FileWriter* open(const std::filesystem::path& path, FileMode&& mode) {
-            static FileWriter instance(path, mode);
-            return &instance;
-        }
-
-        void write(std::span<char>& buffer) {
-            if (!detail::writeFile(file_, buffer)) {
-                throw std::runtime_error("failed to write to file");
-            }
-        }
-
-        void close() {
-            detail::closeFile(std::move(file_));
-        }
-    };
-
-    class FileReaderNormal {
-    private:
-        detail::FileHandle file_;
-
-    public:
-        FileReaderNormal() {
+        FileReader() {
             file_.reset();
         }
 
@@ -133,12 +79,12 @@ namespace common::file_io {
         }
     };
 
-    class FileWriterNormal {
+    class FileWriter {
     private:
         detail::FileHandle file_;
 
     public:
-        FileWriterNormal() {
+        FileWriter() {
             file_.reset();
         }
 

@@ -163,7 +163,7 @@ namespace EventTweet::SlidingWindow {
 
         std::unordered_map<std::string, Tweet>& GetNeedPredictTweetMap();
 
-        void CollectTweet(Tweet&& tweet);
+        void CollectTweet(Tweet& tweet);
 
         void ComputeTweetVectorization(ConfigFileHandler& config_file_handler);
 	};

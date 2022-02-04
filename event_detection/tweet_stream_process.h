@@ -10,6 +10,7 @@
 #include <iterator>
 #include <memory>
 #include <python3.8/Python.h>
+#include <vector>
 
 #include "../common/file_io/lines.h"
 #include "../common/file_io/file_io.h"
@@ -30,8 +31,6 @@ using common::file_io::FileReader;
 using common::file_io::FileWriter;
 using common::file_io::FileMode;
 using common::file_io::read_lines::linesInFile;
-using common::file_io::FileReaderNormal;
-using common::file_io::FileWriterNormal;
 using common::file_io::SplitPath;
 using common::config_handler::ConfigFileHandler;
 using common::geo_space::Point;
@@ -65,6 +64,8 @@ namespace EventTweet::TweetStream {
 
         bool has_OPTICS = false;
 
+        std::vector<Tweet> tweet_corpus;
+
 	public:
 		TweetStreamProcess(ConfigFileHandler& config_file_handler);
 
@@ -74,6 +75,6 @@ namespace EventTweet::TweetStream {
 
         bool ProcessGLOVE(DataParser& json_parser, SnapShot& snapshot, ConfigFileHandler& config_file_handler);
 
-		bool StreamProcess(FileReader& fileReader, ConfigFileHandler& config_file_handler);
+		void StreamProcess(FileReader& file_reader, ConfigFileHandler& config_file_handler);
 	};
 }

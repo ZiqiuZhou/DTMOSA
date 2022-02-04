@@ -64,14 +64,14 @@ namespace EventTweet::SlidingWindow {
         return *tweet_need_predict_ptr;
     }
 
-    void SnapShot::CollectTweet(Tweet&& tweet) {
+    void SnapShot::CollectTweet(Tweet& tweet) {
         auto& tweet_map = GetTweetMap();
         auto& need_predict_map = GetNeedPredictTweetMap();
         const std::string& tweet_id = tweet.GetTweetID();
         if (tweet.NeedPredictLocation()) {
             need_predict_map[tweet_id] = tweet;
         }
-        tweet_map[tweet_id] = std::move(tweet);
+        tweet_map[tweet_id] = tweet;
         return ;
     }
 
