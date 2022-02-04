@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-pipe -O2 -Wall)
 
 add_library(osm_semantic_annotation SHARED
-        OpenStreetMap.cpp)
+        OSMAnnotation.cpp)
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 

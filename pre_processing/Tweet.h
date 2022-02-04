@@ -10,6 +10,10 @@
 #include "../common/file_io/lines.h"
 #include "../common/config_handler/config_handler.h"
 
+using common::file_io::FileReader;
+using common::file_io::FileMode;
+using common::config_handler::ConfigFileHandler;
+
 namespace PreProcessing::TweetParser {
     const double INVALID_NUM = 0.;
 

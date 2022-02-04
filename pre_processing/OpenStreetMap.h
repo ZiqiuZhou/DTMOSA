@@ -134,6 +134,10 @@ namespace PreProcessing::OpenStreetMapParser {
         void SetGridIndex(int index) {
             this->grid_idx = index;
         }
+
+        int GetGridIndex() {
+            return this->grid_idx;
+        }
     };
 }
 #endif //GEOBURST_OSM_OPENSTREETMAP_H
