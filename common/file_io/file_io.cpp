@@ -59,7 +59,7 @@ namespace common::file_io {
             std::FILE* rawfile = file.release();
 
             // Close the file, throw an exception on error.
-            int result = fclose(rawfile);
+            int result = std::fclose(rawfile);
             detail::posixAssert(result == 0);
         }
 

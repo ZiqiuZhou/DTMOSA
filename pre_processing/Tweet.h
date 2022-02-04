@@ -277,6 +277,14 @@ namespace PreProcessing::TweetParser {
         int GetIndex() const {
             return this->index;
         }
+
+        void Simplify() {
+            user_id = "";
+            context = "";
+            word_embedding.clear();
+            tweet_embedding.clear();
+            index = 0;
+        }
 	};
 } // end namespace PreProcessing::TweetParser
 

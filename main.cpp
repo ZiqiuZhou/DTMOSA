@@ -9,6 +9,7 @@
 #include "pre_processing/Tweet.h"
 #include "pre_processing/data_parser.h"
 #include "event_detection/tweet_stream_process.h"
+#include "osm_semantic_annotation/osm_annotation_process.h"
 
 using common::file_io::FileReader;
 using common::file_io::FileMode;
@@ -18,6 +19,7 @@ using common::geo_space::Space;
 using PreProcessing::TweetParser::Tweet;
 using PreProcessing::JsonParser::DataParser;
 using EventTweet::TweetStream::TweetStreamProcess;
+using OpenStreetMapAnnotation::AnnotationProcess::OSM_AnnotationProcess;
 
 int main(int argc, char* argv[]) {
     ConfigFileHandler config_file_handler = *ConfigFileHandler::GetInstance();
@@ -26,29 +28,35 @@ int main(int argc, char* argv[]) {
     auto filename_tweet = config_items["crawled_tweet"];
     auto filename_osm = config_items["crawled_osm"];
 
-    TweetStreamProcess process(config_file_handler);
+    TweetStreamProcess stream_process(config_file_handler);
     if (argc == 2 && argv[1] == std::string("GLOVE")) {
-        process.has_GLOVE = true;
+        stream_process.has_GLOVE = true;
     }
     if (argc == 2 && argv[1] == std::string("OPTICS")) {
-        process.has_OPTICS = true;
+        stream_process.has_OPTICS = true;
     }
     if (argc == 3) {
         if (argv[1] == std::string("GLOVE")) {
-            process.has_GLOVE = true;
+            stream_process.has_GLOVE = true;
         }
         if (argv[1] == std::string("OPTICS")) {
-            process.has_OPTICS = true;
+            stream_process.has_OPTICS = true;
         }
         if (argv[2] == std::string("GLOVE")) {
-            process.has_GLOVE = true;
+            stream_process.has_GLOVE = true;
         }
         if (argv[2] == std::string("OPTICS")) {
-            process.has_OPTICS = true;
+            stream_process.has_OPTICS = true;
         }
     }
-    process.StreamProcess(*FileReader::open(filename_tweet, FileMode::text), config_file_handler);
 
+    FileReader file_reader;
+    //file_reader.open(filename_tweet, FileMode::text);
+    //stream_process.StreamProcess(file_reader, config_file_handler);
+
+    file_reader.open(filename_osm, FileMode::text);
+    OSM_AnnotationProcess annotate_process(stream_process.tweet_corpus);
+    annotate_process.AnnotateProcess(file_reader, config_file_handler);
     std::cout << "finish.";
     return 0;
 }

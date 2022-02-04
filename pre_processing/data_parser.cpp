@@ -93,7 +93,7 @@ namespace PreProcessing::JsonParser {
             exit(EXIT_FAILURE);
         }
 
-        if (!(document.HasMember("osm_id") && document["osm_id"].IsString() && !document["tweet_id"].IsNull())) {
+        if (!(document.HasMember("osm_id") && document["osm_id"].IsString() && !document["osm_id"].IsNull())) {
             std::cout << "file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
                       << " Invalid osm_id element in json." << std::endl;
             return false;
@@ -125,12 +125,14 @@ namespace PreProcessing::JsonParser {
 
         const Value& coordinate_list = document["coordinates"];
         auto& coordinates = osm.GetCoordinates();
-        for (Value::ConstMemberIterator iter = coordinate_list.MemberBegin();
-             iter != coordinate_list.MemberEnd(); ++iter) {
-            const Value& coordinate = iter->value;
-            double longitude = coordinate[0].GetDouble();
-            double latitude = coordinate[1].GetDouble();
-            coordinates.emplace_back(std::make_pair(longitude, latitude));
+        for (Value::ConstValueIterator iter = coordinate_list.Begin();
+             iter != coordinate_list.End(); ++iter) {
+            if (iter->IsArray()) {
+                const Value& coordinate = *iter;
+                double longitude = coordinate[0].GetDouble();
+                double latitude = coordinate[1].GetDouble();
+                coordinates.emplace_back(std::make_pair(longitude, latitude));
+            }
         }
 
         if (!(document.HasMember("tags") && document["tags"].IsObject() && !document["tags"].IsNull())) {

@@ -15,11 +15,12 @@ namespace EventTweet::TweetStream {
 		this->time_interval = config_file_handler.GetValue("snapshot_interval", 1);
 		auto start_time_str = config_file_handler.GetValue("start_time");
 		this->start_time = time_from_string(start_time_str);
+        this->tweet_corpus = {};
 	}
 
     TweetStreamProcess::~TweetStreamProcess() {
         this->time_interval = 0;
-        auto start_time_str = "";
+        this->tweet_corpus.clear();
     }
 
     int TweetStreamProcess::ToTimeDuration(std::string&& time_str_format) {
@@ -48,7 +49,7 @@ namespace EventTweet::TweetStream {
         embedded_file += (post_fix + extension);
 
         std::ifstream file_stream(need_embedding_file);
-        FileWriterNormal file_writer;
+        FileWriter file_writer;
         file_writer.open(need_embedding_file, FileMode::text);
         if (file_stream.peek() != std::ifstream::traits_type::eof()) {
             std::cout << " file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
@@ -82,7 +83,7 @@ namespace EventTweet::TweetStream {
         }
         PyRun_SimpleString("import sys");
         PySys_SetArgv(argc, wargv);
-        FileReaderNormal file_reader;
+        FileReader file_reader;
         file_reader.open(python_file, FileMode::text);
         if (PyRun_SimpleFile(file_reader.GetFilePointer(), python_file.c_str()) != 0) {
             return rtn;
@@ -108,7 +109,7 @@ namespace EventTweet::TweetStream {
         return rtn;
     }
 
-	bool TweetStreamProcess::StreamProcess(FileReader& file_reader, ConfigFileHandler& config_file_handler) {
+	void TweetStreamProcess::StreamProcess(FileReader& file_reader, ConfigFileHandler& config_file_handler) {
 		DataParser json_parser;
 
 		HistorySequenceSet history_sequence_set(config_file_handler.GetValue("sequence_length", 200));
@@ -138,15 +139,10 @@ namespace EventTweet::TweetStream {
                 tweet.SetLongitude(new_point.longitude);
                 tweet.SetLatitude(new_point.latitude);
             }
-
 			std::string timestamp = tweet.GetCreateTime();
 			auto duration = ToTimeDuration(std::move(timestamp));
 			// process the entire snapshot
 			if (time_interval - duration <= 0) {
-                if (snapshot.GetIndex() > 28) {
-                    break;
-                }
-
                 std::cout << "process snapshot: " << snapshot.GetIndex() << std::endl;
 				// construct history usage
 				if (snapshot.GetIndex() < history_length) {
@@ -206,9 +202,11 @@ namespace EventTweet::TweetStream {
 			snapshot.GenerateWordTweetPair(tweet);
 
             // last step: collect this tweet
-            snapshot.CollectTweet(std::move(tweet));
+            snapshot.CollectTweet(tweet);
+            tweet.Simplify();
+            tweet_corpus.emplace_back(std::move(tweet));
         }
 
-		return true;
+		return ;
 	}
 }
