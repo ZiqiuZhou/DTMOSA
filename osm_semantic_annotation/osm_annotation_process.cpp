@@ -33,7 +33,7 @@ namespace OpenStreetMapAnnotation::AnnotationProcess {
             if (!spatial_integration_handler.IsValidObject(osm_object)) {
                 continue;
             }
-
+          
             // for polygon based osm object
             if (osm_object.GetOSMType() == "Polygon") {
                 std::vector<Tweet> candidate_tweets = spatial_integration_handler.FindCandidateTweetsForPolygon(osm_object);
