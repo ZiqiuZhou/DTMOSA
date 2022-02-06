@@ -91,6 +91,16 @@ namespace common::geo_space {
         return false;
     }
 
+    bool Space::ContainsPoint(double longitude, double latitude) {
+        Point& southwest_corner = bounding_box.southwest_corner;
+        Point& northeast_corner = bounding_box.northeast_corner;
+        if (longitude >= southwest_corner.longitude && longitude <= northeast_corner.longitude &&
+            latitude >= southwest_corner.latitude && latitude <= northeast_corner.latitude) {
+            return true;
+        }
+        return false;
+    }
+
     Point Space::ReGenerateCoordinates(Point& point) {
         double centroid_lon = point.longitude;
         double centroid_lat = point.latitude;

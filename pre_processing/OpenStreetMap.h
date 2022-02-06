@@ -107,6 +107,10 @@ namespace PreProcessing::OpenStreetMapParser {
             this->osm_type = std::move(_type);
         }
 
+        std::string& GetOSMType() {
+            return this->osm_type;
+        }
+
         void SetCoordinates(const std::vector<std::pair<double, double> >& _coordinates) {
             this->coordinates = _coordinates;
         }
