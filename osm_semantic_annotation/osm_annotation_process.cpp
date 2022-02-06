@@ -18,6 +18,9 @@ namespace OpenStreetMapAnnotation::AnnotationProcess {
         std::vector<double> space_bounding_box(config_file_handler.GetVector("space_Houston"));
         Space space(space_bounding_box, 1.0);
 
+        GeoIntegrationHandler spatial_integration_handler(space, config_file_handler, tweet_corpus);
+        spatial_integration_handler.CreateTweetLocationMap();
+
         for (std::string_view line : linesInFile(std::move(file_reader))) {
             std::string json_osm = std::string(line);
             OpenStreetMap osm_object;
@@ -27,7 +30,19 @@ namespace OpenStreetMapAnnotation::AnnotationProcess {
             }
             json_osm.clear();
 
+            if (!spatial_integration_handler.IsValidObject(osm_object)) {
+                continue;
+            }
 
+            // for polygon based osm object
+            if (osm_object.GetOSMType() == "Polygon") {
+                std::vector<Tweet> candidate_tweets = spatial_integration_handler.FindCandidateTweetsForPolygon(osm_object);
+            }
+
+            // for line based osm object
+            if (osm_object.GetOSMType() == "LineString") {
+                std::vector<Tweet> candidate_tweets = spatial_integration_handler.FindCandidateTweetsForLine(osm_object);
+            }
         }
     }
 }

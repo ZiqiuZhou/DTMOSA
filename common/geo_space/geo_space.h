@@ -11,7 +11,7 @@ using point = boost::geometry::model::point<double, 2, boost::geometry::cs::geog
 
 namespace common::geo_space {
 
-    const double RADIUS = 0.01;
+    const double RADIUS = 0.005;
     const double DIST = 111.;
     double const EARTH_RADIUS = 6371.0;
 
@@ -50,6 +50,24 @@ namespace common::geo_space {
             this->longitude = std::exchange(_point.longitude, 0.);
             this->latitude = std::exchange(_point.latitude, 0.);
             return *this;
+        }
+
+        Point operator+(const Point& _point) const {
+            return {longitude + _point.longitude, latitude + _point.latitude};
+        }
+
+        Point operator-(const Point& _point) const {
+            return {longitude - _point.longitude, latitude - _point.latitude};
+        }
+
+        // dot product
+        double operator*(const Point& _point) const {
+            return longitude * _point.longitude + latitude * _point.latitude;
+        }
+
+        // cross product
+        double operator^(const Point& _point) const {
+            return longitude * _point.latitude - _point.longitude * latitude;
         }
 	};
 
@@ -96,6 +114,9 @@ namespace common::geo_space {
 
 		Space(std::vector<double>& coordinates_list) 
 			: bounding_box(coordinates_list){}
+
+        Space(std::vector<double>&& coordinates_list)
+                : bounding_box(std::move(coordinates_list)){}
 
 		Space(Point& sc, Point& nc)
 			: bounding_box(sc, nc){}
@@ -150,6 +171,8 @@ namespace common::geo_space {
         double Distance(Point& lhs, Point& rhs);
 
         bool ContainsPoint(Point& point);
+
+        bool ContainsPoint(double longitude, double latitude);
 
         Point ReGenerateCoordinates(Point& point);
 	};

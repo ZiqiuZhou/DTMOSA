@@ -15,6 +15,7 @@
 #include "../pre_processing/Tweet.h"
 #include "../pre_processing/data_parser.h"
 #include "../event_detection/tweet_stream_process.h"
+#include "spatial_data_integration.h"
 
 using PreProcessing::OpenStreetMapParser::OpenStreetMap;
 using PreProcessing::TweetParser::Tweet;
@@ -25,6 +26,7 @@ using common::file_io::read_lines::linesInFile;
 using common::config_handler::ConfigFileHandler;
 using common::geo_space::Space;
 using EventTweet::TweetStream::TweetStreamProcess;
+using OpenStreetMapAnnotation::SpatialDataIntegration::GeoIntegrationHandler;
 
 namespace OpenStreetMapAnnotation::AnnotationProcess {
 
