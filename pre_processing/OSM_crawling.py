@@ -1,5 +1,10 @@
 import requests
 import json
+import pyproj
+import shapely
+import shapely.ops as ops
+from shapely.geometry.polygon import Polygon
+from functools import partial
 
 URL = 'https://api.ohsome.org/v1/contributions/latest/geometry'
 data = {"bboxes": "-95.575128, 29.534661, -95.165277, 29.893392", "time": "2017-09-03,2017-09-10", "showMetadata": "yes", "properties": "metadata,tags"}
@@ -23,6 +28,19 @@ def crawl_process(filter_data, f, building_flag):
     return
 
 
+def polygon_area(coordinates):
+    geom = Polygon(coordinates)
+    geom_area = ops.transform(
+        partial(
+            pyproj.transform,
+            pyproj.Proj(init='EPSG:4326'),
+            pyproj.Proj(
+                proj='aea',
+                lat_1=geom.bounds[1],
+                lat_2=geom.bounds[3])), geom)
+    return geom_area.area
+
+
 def parse_building(raw_objects, f):
     for obj in raw_objects:
         if obj['geometry'] is None or obj['geometry'] == 'None':
@@ -34,9 +52,11 @@ def parse_building(raw_objects, f):
         
         print(obj)
         coordinates = obj['geometry']['coordinates'][0]
+        if polygon_area(coordinates) < 1000:
+            continue
         tags = {}
         osm_id = obj['properties']['@osmId']
-        if osm_id_set in osm_id_set:
+        if osm_id in osm_id_set:
             continue
         else:
             osm_id_set.add(osm_id)
@@ -63,9 +83,11 @@ def parse_road(raw_objects, f):
         
         print(obj)
         coordinates = obj['geometry']['coordinates']
+        if len(coordinates) < 5:
+            continue
         tags = {}
         osm_id = obj['properties']['@osmId']
-        if osm_id_set in osm_id_set:
+        if osm_id in osm_id_set:
             continue
         else:
             osm_id_set.add(osm_id)

@@ -11,9 +11,9 @@ using point = boost::geometry::model::point<double, 2, boost::geometry::cs::geog
 
 namespace common::geo_space {
 
-    const double RADIUS = 0.005;
+    const double RADIUS = 0.002;
     const double DIST = 111.;
-    double const EARTH_RADIUS = 6371.0;
+    double const EARTH_RADIUS = 6378.1;
 
 	class Point {
     public:

@@ -51,8 +51,8 @@ int main(int argc, char* argv[]) {
     }
 
     FileReader file_reader;
-    //file_reader.open(filename_tweet, FileMode::text);
-    //stream_process.StreamProcess(file_reader, config_file_handler);
+    file_reader.open(filename_tweet, FileMode::text);
+    stream_process.StreamProcess(file_reader, config_file_handler);
 
     file_reader.open(filename_osm, FileMode::text);
     OSM_AnnotationProcess annotate_process(stream_process.tweet_corpus);
