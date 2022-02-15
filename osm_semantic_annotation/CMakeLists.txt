@@ -5,7 +5,8 @@ add_compile_options(-pipe -O2 -Wall)
 
 add_library(osm_semantic_annotation SHARED
         osm_annotation_process.cpp
-        spatial_data_integration.cpp)
+        spatial_data_integration.cpp
+        semantic_annotation.cpp)
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 

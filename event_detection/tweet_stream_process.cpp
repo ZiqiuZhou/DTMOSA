@@ -123,6 +123,9 @@ namespace EventTweet::TweetStream {
 
 		// iterate all tweets
         for (std::string_view line : linesInFile(std::move(file_reader))) {
+            if (snapshot.GetIndex() >= 44) {
+                break;
+            }
 			std::string json_tweet = std::string(line);
 			Tweet tweet;
 			if (!json_parser.TweetParser(tweet, json_tweet)) {
@@ -144,49 +147,51 @@ namespace EventTweet::TweetStream {
 			// process the entire snapshot
 			if (time_interval - duration <= 0) {
                 std::cout << "process snapshot: " << snapshot.GetIndex() << std::endl;
-				// construct history usage
-				if (snapshot.GetIndex() < history_length) {
-					history_sequence_set.ManipulateWordHistory(snapshot);
-				} else {
-                    // 1. get bursty words set at snapshot t
-                    BurstyWords bursty_word_set;
-                    if (!history_sequence_set.Burst(snapshot, bursty_word_set)) {
-                        current_snapshot_index++;
-                        snapshot.SetIndex(current_snapshot_index);
-                        int step = duration / time_interval;
-                        start_time += std::chrono::seconds(step * time_interval);
-                        continue;
-                    }
-                    snapshot.SetBurstyWords(std::move(bursty_word_set));
-
-                    // 2. compute tweet similarity and predict location
-                    if (has_GLOVE) {
-                        // word embedding using GLOVE
-                        if (ProcessGLOVE(json_parser, snapshot, config_file_handler)) {
-                            snapshot.ComputeTweetVectorization(config_file_handler);
-                        }
-                    }
-                    snapshot.GenerateWordIndexMap();
-                    TweetSimilarityHandler similarity_handler(snapshot, config_file_handler);
-                    if (has_GLOVE) {
-                        similarity_handler.embedding = true;
-                    }
-                    similarity_handler.Init()
-                                      .GenerateSimMap();
-                    TweetLocationPredictor location_predictor(config_file_handler);
-                    location_predictor.Predict(similarity_handler);
-
-                    // 3. clustering
-                    std::unique_ptr<BaseClustering> cluster_ptr;
-                    if (has_OPTICS) {
-                        cluster_ptr = std::make_unique<OPTICS>(snapshot, similarity_handler, config_file_handler);
+                if (snapshot.GetIndex() <= 43) {
+                    // construct history usage
+                    if (snapshot.GetIndex() < history_length) {
+                        history_sequence_set.ManipulateWordHistory(snapshot);
                     } else {
-                        cluster_ptr = std::make_unique<DBSCAN>(snapshot, similarity_handler, config_file_handler);
-                    }
-                    cluster_ptr->Cluster();
-                    auto& points = cluster_ptr->GetResults();
-                    for (const auto& point: points) {
-                        std::cout << std::setprecision(10) << point.longitude << " " << std::setprecision(10) << point.latitude << " " << point.cluster_id << std::endl;
+                        // 1. get bursty words set at snapshot t
+                        BurstyWords bursty_word_set;
+                        if (!history_sequence_set.Burst(snapshot, bursty_word_set)) {
+                            current_snapshot_index++;
+                            snapshot.SetIndex(current_snapshot_index);
+                            int step = duration / time_interval;
+                            start_time += std::chrono::seconds(step * time_interval);
+                            continue;
+                        }
+                        snapshot.SetBurstyWords(std::move(bursty_word_set));
+
+                        // 2. compute tweet similarity and predict location
+                        if (has_GLOVE) {
+                            // word embedding using GLOVE
+                            if (ProcessGLOVE(json_parser, snapshot, config_file_handler)) {
+                                snapshot.ComputeTweetVectorization(config_file_handler);
+                            }
+                        }
+                        snapshot.GenerateWordIndexMap();
+                        TweetSimilarityHandler similarity_handler(snapshot, config_file_handler);
+                        if (has_GLOVE) {
+                            similarity_handler.embedding = true;
+                        }
+                        similarity_handler.Init()
+                                .GenerateSimMap();
+                        TweetLocationPredictor location_predictor(config_file_handler);
+                        location_predictor.Predict(similarity_handler);
+
+                        // 3. clustering
+                        std::unique_ptr<BaseClustering> cluster_ptr;
+                        if (has_OPTICS) {
+                            cluster_ptr = std::make_unique<OPTICS>(snapshot, similarity_handler, config_file_handler);
+                        } else {
+                            cluster_ptr = std::make_unique<DBSCAN>(snapshot, similarity_handler, config_file_handler);
+                        }
+                        cluster_ptr->Cluster();
+                        auto& points = cluster_ptr->GetResults();
+                        for (const auto& point: points) {
+                            std::cout << std::setprecision(10) << point.longitude << " " << std::setprecision(10) << point.latitude << " " << point.cluster_id << std::endl;
+                        }
                     }
                 }
 				// 4. trigger sliding window to slide and switch to next snapshot

@@ -91,6 +91,10 @@ namespace PreProcessing::OpenStreetMapParser {
             this->osm_id = std::move(_id);
         }
 
+        std::string& GetOSMID() {
+            return this->osm_id;
+        }
+
         void SetCreateTime(const std::string& _create_time) {
             this->create_time = _create_time;
         }

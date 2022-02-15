@@ -16,6 +16,7 @@
 #include "../pre_processing/data_parser.h"
 #include "../event_detection/tweet_stream_process.h"
 #include "spatial_data_integration.h"
+#include "semantic_annotation.h"
 
 using PreProcessing::OpenStreetMapParser::OpenStreetMap;
 using PreProcessing::TweetParser::Tweet;
@@ -27,6 +28,8 @@ using common::config_handler::ConfigFileHandler;
 using common::geo_space::Space;
 using EventTweet::TweetStream::TweetStreamProcess;
 using OpenStreetMapAnnotation::SpatialDataIntegration::GeoIntegrationHandler;
+using OpenStreetMapAnnotation::SemanticAnnotation::AnnotationHandler;
+using OpenStreetMapAnnotation::SemanticAnnotation::WordScoreType;
 
 namespace OpenStreetMapAnnotation::AnnotationProcess {
 
