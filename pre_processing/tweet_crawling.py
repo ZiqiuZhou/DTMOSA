@@ -188,7 +188,7 @@ class CrawlData(object):
     def crawl_data(self):
         search_url = "https://api.twitter.com/2/tweets/search/all?query=Hurricane OR"\
         "HurricaneHarvey OR Harvey OR HoustonFlood OR Hurricane Harvey OR has:geo lang:en bounding_box:["\
-        + self.bounding_box[0] + " " + self.bounding_box[1] + " " + self.bounding_box[2] + " " + self.bounding_box[3] + \
+                     + self.bounding_box[0] + " " + self.bounding_box[1] + " " + self.bounding_box[2] + " " + self.bounding_box[3] + \
         "]&&start_time=" + self.start_time + "&&end_time=" + self.end_time + \
         "&&tweet.fields=id,author_id,created_at,geo,text&&expansions=geo.place_id&&" + \
         "place.fields=contained_within,country,geo,name,place_type&&max_results=500"
@@ -250,10 +250,10 @@ class CrawlData(object):
 if __name__ == "__main__":
     # These are provided to you through the Twitter API after you create a account
     # register a Twitter App to get the keys and access tokens.
-    output_file = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston1.json"
-    file_location_predict = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_need_predict_loc1.json"
-    output_file_temp = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston_temp1.json"
-    file_location_predict_temp = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_need_predict_loc_temp1.json"
+    output_file = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston.json"
+    file_location_predict = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_need_predict_loc.json"
+    output_file_temp = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_Houston_temp.json"
+    file_location_predict_temp = "/home/dietrich/master_thesis/GeoBurst_OSM/data/tweets_need_predict_loc_temp.json"
     # load configurations
     
     # LOCATIONS are the longitude, latitude coordinate corners for a box that restricts the
