@@ -1,2 +1,2 @@
-# Twitter Mining for OSM semantic Annotation (TMOSA)
+# Twitter Mining for OSM Semantic Annotation (TMOSA)
 master_thesis_code
