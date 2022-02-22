@@ -39,7 +39,7 @@ namespace OpenStreetMapAnnotation::SpatialDataIntegration {
 
     class GeoIntegrationHandler {
     private:
-        double distance; // distance threshold of a point to a line
+        double dist_threshold; // distance threshold of a point to a line
 
         Space& space;
 
@@ -67,6 +67,9 @@ namespace OpenStreetMapAnnotation::SpatialDataIntegration {
         std::unordered_set<int> FindBelongingGrids(std::vector<Point>& points);
 
         std::vector<Tweet> FindCandidateTweetsForLine(OpenStreetMap& osm_line_object);
+
+        // for point osm objects
+        std::vector<Tweet> FindCandidateTweetsForPoint(OpenStreetMap& osm_line_object);
     };
 }
 #endif //GEOBURST_OSM_SPATIAL_DATA_INTEGRATION_H

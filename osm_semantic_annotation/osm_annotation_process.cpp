@@ -67,6 +67,22 @@ namespace OpenStreetMapAnnotation::AnnotationProcess {
                     std::cout << std::endl;
                 }
             }
+
+            // for point based osm object
+            if (osm_object.GetOSMType() == "Point") {
+                std::vector<Tweet> candidate_tweets = spatial_integration_handler.FindCandidateTweetsForPoint(osm_object);
+                std::cout << "candidate_tweets number: " << candidate_tweets.size() << " " << osm_object.GetOSMID()
+                          << " " << osm_object.GetOSMType() << std::endl;
+                if (!candidate_tweets.empty() && candidate_tweets.size() >= MIN_NUM_CAND) {
+                    AnnotationHandler annotation_handler(osm_object, candidate_tweets);
+                    annotation_handler.Rank();
+                    std::vector<WordScoreType>& word_score_list = annotation_handler.GetAnnotations();
+                    for (auto& [word, score] : word_score_list) {
+                        std::cout << word << ":" << score << " ";
+                    }
+                    std::cout << std::endl;
+                }
+            }
         }
     }
 }

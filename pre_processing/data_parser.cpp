@@ -132,10 +132,14 @@ namespace PreProcessing::JsonParser {
                 double longitude = coordinate[0].GetDouble();
                 double latitude = coordinate[1].GetDouble();
                 coordinates.emplace_back(std::make_pair(longitude, latitude));
+            } else if (iter->IsDouble()) {
+                double longitude = coordinate_list[0].GetDouble();
+                double latitude = coordinate_list[1].GetDouble();
+                coordinates.emplace_back(std::make_pair(longitude, latitude));
             }
         }
 
-        if (!(document.HasMember("tags") && document["tags"].IsObject() && !document["tags"].IsNull())) {
+        if (!(document.HasMember("tags") && document["tags"].IsObject())) {
             std::cout << "file path = " << __FILE__ << " function name = " << __FUNCTION__ << " line = " << __LINE__
                       << " Invalid tags element in json." << std::endl;
             return false;
