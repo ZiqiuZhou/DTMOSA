@@ -87,7 +87,7 @@ namespace OpenStreetMapAnnotation::SpatialDataIntegration {
                                                  std::vector<Tweet>& tweet_corpus)
     : space(_space), tweet_list(tweet_corpus) {
         tweet_location_map = {};
-        distance = config_file_handler.GetValue("distance", 1.0);
+        dist_threshold = config_file_handler.GetValue("distance", 1.0);
     }
 
     GeoIntegrationHandler::~GeoIntegrationHandler() {
@@ -215,9 +215,7 @@ namespace OpenStreetMapAnnotation::SpatialDataIntegration {
         for (int grid_index : grid_set) {
             if (tweet_location_map.find(grid_index) != tweet_location_map.end()) {
                 auto& tweets = tweet_location_map[grid_index];
-                for (auto& tweet : tweets) {
-                    naive_candidates.emplace_back(tweet);
-                }
+                naive_candidates.insert(naive_candidates.end(), tweets.begin(), tweets.end());
             }
         }
         if (naive_candidates.empty()) {
@@ -236,13 +234,13 @@ namespace OpenStreetMapAnnotation::SpatialDataIntegration {
                 Point tweet_point(tweet.GetLongitude(), tweet.GetLatitude());
                 std::vector<std::pair<double, double>> polygon_vertexes;
 
-                double new_lat1 = point1.latitude - distance / DIST;
+                double new_lat1 = point1.latitude - dist_threshold / DIST;
                 polygon_vertexes.emplace_back(std::make_pair(point1.longitude, new_lat1)); // southwest_corner
-                double new_lat2 = point1.latitude + distance / DIST;
+                double new_lat2 = point1.latitude + dist_threshold / DIST;
                 polygon_vertexes.emplace_back(std::make_pair(point1.longitude, new_lat2)); // northwest_corner
-                double new_lat3 = point2.latitude + distance / DIST;
+                double new_lat3 = point2.latitude + dist_threshold / DIST;
                 polygon_vertexes.emplace_back(std::make_pair(point2.longitude, new_lat3)); // northeast_corner
-                double new_lat4 = point2.latitude - distance / DIST;
+                double new_lat4 = point2.latitude - dist_threshold / DIST;
                 polygon_vertexes.emplace_back(std::make_pair(point2.longitude, new_lat4)); // southeast_corner
                 if (detail::InPolygon(tweet_point, polygon_vertexes)) {
                     if (helper_set.find(tweet.GetTweetID()) == helper_set.end()) {
@@ -252,6 +250,34 @@ namespace OpenStreetMapAnnotation::SpatialDataIntegration {
                 }
             }
         }
+        return final_candidates;
+    }
+
+    std::vector<Tweet> GeoIntegrationHandler::FindCandidateTweetsForPoint(OpenStreetMap& osm_line_object) {
+        auto& coordinates = osm_line_object.GetCoordinates();
+        std::pair<double, double>& coordinate = coordinates[0];
+        int grid_index = space.GetCellIndex(coordinate.first, coordinate.second);
+
+        std::vector<Tweet> naive_candidates = {};
+        if (tweet_location_map.find(grid_index) != tweet_location_map.end()) {
+            auto& tweets = tweet_location_map[grid_index];
+            naive_candidates.insert(naive_candidates.end(), tweets.begin(), tweets.end());
+        }
+        if (naive_candidates.empty()) {
+            return naive_candidates;
+        }
+
+        std::vector<Tweet> final_candidates = {};
+        Point osm_point(coordinate.first, coordinate.second);
+        for (Tweet& tweet : naive_candidates) {
+            double longitude = tweet.GetLongitude();
+            double latitude = tweet.GetLatitude();
+            Point tweet_point(longitude, latitude);
+            if (space.Distance(osm_point, tweet_point) <= dist_threshold) {
+                final_candidates.emplace_back(tweet);
+            }
+        }
+
         return final_candidates;
     }
 }

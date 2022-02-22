@@ -12,7 +12,7 @@ data = {"bboxes": "-95.575128, 29.534661, -95.165277, 29.893392", "time": "2017-
 osm_id_set = set()
 
 
-def crawl_process(filter_data, f, building_flag):
+def crawl_process(filter_data, f, flag):
     # request data
     request_data = data.copy()
     request_data['filter'] = filter_data
@@ -21,10 +21,12 @@ def crawl_process(filter_data, f, building_flag):
     if 'features' in response and isinstance(response['features'], list) and response['features']:
         raw_objects = response['features']
     
-        if building_flag:
+        if flag == "building":
             parse_building(raw_objects, f)
-        else:
+        elif flag == "road":
             parse_road(raw_objects, f)
+        else:
+            parse_point(raw_objects, f)
     return
 
 
@@ -102,16 +104,48 @@ def parse_road(raw_objects, f):
         f.write(json.dumps(record, ensure_ascii=False) + '\n')
 
 
+def parse_point(raw_objects, f):
+    for obj in raw_objects:
+        if obj['geometry'] is None or obj['geometry'] == 'None':
+            continue
+        if obj['geometry']['type'] != 'Point':
+            continue
+        if len(obj['geometry']['coordinates']) != 2:
+            continue
+
+        print(obj)
+        coordinates = obj['geometry']['coordinates']
+        tags = {}
+        osm_id = obj['properties']['@osmId']
+        if osm_id in osm_id_set:
+            continue
+        else:
+            osm_id_set.add(osm_id)
+        create_time = ""
+        for key, value in obj['properties'].items():
+            if key == '@timestamp':
+                create_time = value
+            if key[0] != '@':
+                tags[key] = value
+        record = {"osm_id": osm_id, "timestamp": create_time, "type": obj['geometry']['type'],
+                  "coordinates": coordinates, "tags": tags}
+        f.write(json.dumps(record, ensure_ascii=False) + '\n')
+
+
 if __name__ == "__main__":
     filter_buildings = "building=* and geometry:polygon"
     filter_roads = "highway=* and type:way"
+    filter_points = "geometry:point"
     
     file_building_path = "/home/dietrich/master_thesis/GeoBurst_OSM/data/osm_buildings.json"
     file_road_path = "/home/dietrich/master_thesis/GeoBurst_OSM/data/osm_roads.json"
+    file_point_path = "/home/dietrich/master_thesis/GeoBurst_OSM/data/osm_points.json"
     file_building = open(file_building_path, 'a', encoding="utf-8")
     file_road = open(file_road_path, 'a', encoding="utf-8")
-    crawl_process(filter_buildings, file_building, True)
-    crawl_process(filter_roads, file_road, False)
+    file_point = open(file_point_path, 'a', encoding="utf-8")
+    crawl_process(filter_buildings, file_building, "building")
+    crawl_process(filter_roads, file_road, "road")
+    crawl_process(filter_points, file_point, "point")
 
     print("finished")
     
