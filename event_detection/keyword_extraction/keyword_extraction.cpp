@@ -2,7 +2,7 @@
 
 namespace EventTweet::KeywordExtraction {
 
-    const static int occurrence_frequency = 3;
+    const static int occurrence_frequency = 5;
 
 	double WordUsageBaseline::GetMean() {
 		if (usage_history.empty()) {

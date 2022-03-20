@@ -112,7 +112,11 @@ namespace EventTweet::Co_Occurrence_Graph {
                 for (ElementInfo& info: non_zero_row) {
                     int row = info.first.row;
                     int col = info.first.col;
-                    coefficients.emplace_back(Triplet<double>(row, col, info.second));
+                    double score = info.second;
+                    if (score >= 0.02) {
+                        coefficients.emplace_back(Triplet<double>(row, col, score));
+                        std::cout << "(" << row << "," << col << "," << score << ")" << std::endl;
+                    }
                 }
             }
             non_zero_row.clear();
