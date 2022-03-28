@@ -35,10 +35,11 @@ namespace OpenStreetMapAnnotation::AnnotationProcess {
             if (!spatial_integration_handler.IsValidObject(osm_object)) {
                 continue;
             }
-          
+
+            std::vector<Tweet> candidate_tweets = {};
             // for polygon based osm object
             if (osm_object.GetOSMType() == "Polygon") {
-                std::vector<Tweet> candidate_tweets = spatial_integration_handler.FindCandidateTweetsForPolygon(osm_object);
+                candidate_tweets = spatial_integration_handler.FindCandidateTweetsForPolygon(osm_object);
                 std::cout << "candidate_tweets number: " << candidate_tweets.size() << " " << osm_object.GetOSMID()
                           << " " << osm_object.GetOSMType() << std::endl;
                 if (!candidate_tweets.empty() && candidate_tweets.size() >= MIN_NUM_CAND) {
@@ -54,7 +55,7 @@ namespace OpenStreetMapAnnotation::AnnotationProcess {
 
             // for line based osm object
             if (osm_object.GetOSMType() == "LineString") {
-                std::vector<Tweet> candidate_tweets = spatial_integration_handler.FindCandidateTweetsForLine(osm_object);
+                candidate_tweets = spatial_integration_handler.FindCandidateTweetsForLine(osm_object);
                 std::cout << "candidate_tweets number: " << candidate_tweets.size() << " " << osm_object.GetOSMID()
                           << " " << osm_object.GetOSMType() << std::endl;
                 if (!candidate_tweets.empty() && candidate_tweets.size() >= MIN_NUM_CAND) {
@@ -70,7 +71,7 @@ namespace OpenStreetMapAnnotation::AnnotationProcess {
 
             // for point based osm object
             if (osm_object.GetOSMType() == "Point") {
-                std::vector<Tweet> candidate_tweets = spatial_integration_handler.FindCandidateTweetsForPoint(osm_object);
+                candidate_tweets = spatial_integration_handler.FindCandidateTweetsForPoint(osm_object);
                 std::cout << "candidate_tweets number: " << candidate_tweets.size() << " " << osm_object.GetOSMID()
                           << " " << osm_object.GetOSMType() << std::endl;
                 if (!candidate_tweets.empty() && candidate_tweets.size() >= MIN_NUM_CAND) {

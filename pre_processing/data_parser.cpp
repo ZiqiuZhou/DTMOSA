@@ -215,7 +215,10 @@ namespace PreProcessing::JsonParser {
 
     void DataParser::TweetToJSON(Tweet& tweet, std::string& str) {
         std::string tweet_id = tweet.GetTweetID();
+        double lon = tweet.GetLongitude();
+        double lat = tweet.GetLatitude();
         std::unordered_multiset<std::string>& word_bag = tweet.GetWordBag();
+        const std::string& content = tweet.GetContext();
 
         document.SetObject();
         Document::AllocatorType& allocator = document.GetAllocator();
@@ -223,6 +226,17 @@ namespace PreProcessing::JsonParser {
         Value tweet_id_value;
         tweet_id_value.SetString(tweet_id.c_str(), allocator);
         document.AddMember("tweet_id", tweet_id_value, allocator);
+        // set longitude / latitude
+        Value long_value;
+        long_value.SetDouble(lon);
+        document.AddMember("longitude", long_value, allocator);
+        Value lat_value;
+        lat_value.SetDouble(lat);
+        document.AddMember("latitude", lat_value, allocator);
+        // set content
+        Value content_value;
+        content_value.SetString(content.c_str(), allocator);
+        document.AddMember("content", content_value, allocator);
         // set word bag
         Value array(kArrayType);
         for (std::string word : word_bag) {

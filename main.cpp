@@ -1,7 +1,5 @@
 #include <iostream>
 #include <string>
-#include <eigen3/Eigen/SparseCore>
-#include <eigen3/Eigen/Dense>
 #include "include/rapidjson/document.h"
 #include "common/file_io/lines.h"
 #include "common/config_handler/config_handler.h"
