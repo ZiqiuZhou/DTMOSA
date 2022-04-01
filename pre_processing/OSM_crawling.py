@@ -54,8 +54,8 @@ def parse_building(raw_objects, f):
         
         print(obj)
         coordinates = obj['geometry']['coordinates'][0]
-        if polygon_area(coordinates) < 1000:
-            continue
+        # if polygon_area(coordinates) < 1000:
+        #     continue
         tags = {}
         osm_id = obj['properties']['@osmId']
         if osm_id in osm_id_set:
@@ -85,8 +85,8 @@ def parse_road(raw_objects, f):
         
         print(obj)
         coordinates = obj['geometry']['coordinates']
-        if len(coordinates) < 5:
-            continue
+        # if len(coordinates) < 5:
+        #     continue
         tags = {}
         osm_id = obj['properties']['@osmId']
         if osm_id in osm_id_set:
@@ -137,9 +137,9 @@ if __name__ == "__main__":
     filter_roads = "highway=* and type:way"
     filter_points = "geometry:point"
     
-    file_building_path = "/home/dietrich/master_thesis/GeoBurst_OSM/data/osm_buildings.json"
-    file_road_path = "/home/dietrich/master_thesis/GeoBurst_OSM/data/osm_roads.json"
-    file_point_path = "/home/dietrich/master_thesis/GeoBurst_OSM/data/osm_points.json"
+    file_building_path = "/home/dietrich/master_thesis/GeoBurst_OSM/data/osm_buildings1.json"
+    file_road_path = "/home/dietrich/master_thesis/GeoBurst_OSM/data/osm_roads1.json"
+    file_point_path = "/home/dietrich/master_thesis/GeoBurst_OSM/data/osm_points1.json"
     file_building = open(file_building_path, 'a', encoding="utf-8")
     file_road = open(file_road_path, 'a', encoding="utf-8")
     file_point = open(file_point_path, 'a', encoding="utf-8")

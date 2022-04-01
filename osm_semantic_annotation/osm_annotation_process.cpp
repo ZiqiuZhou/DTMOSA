@@ -54,7 +54,7 @@ namespace OpenStreetMapAnnotation::AnnotationProcess {
             }
 
             // for line based osm object
-            if (osm_object.GetOSMType() == "LineString") {
+            else if (osm_object.GetOSMType() == "LineString") {
                 candidate_tweets = spatial_integration_handler.FindCandidateTweetsForLine(osm_object);
                 std::cout << "candidate_tweets number: " << candidate_tweets.size() << " " << osm_object.GetOSMID()
                           << " " << osm_object.GetOSMType() << std::endl;
@@ -70,7 +70,7 @@ namespace OpenStreetMapAnnotation::AnnotationProcess {
             }
 
             // for point based osm object
-            if (osm_object.GetOSMType() == "Point") {
+            else if (osm_object.GetOSMType() == "Point") {
                 candidate_tweets = spatial_integration_handler.FindCandidateTweetsForPoint(osm_object);
                 std::cout << "candidate_tweets number: " << candidate_tweets.size() << " " << osm_object.GetOSMID()
                           << " " << osm_object.GetOSMType() << std::endl;
@@ -84,6 +84,11 @@ namespace OpenStreetMapAnnotation::AnnotationProcess {
                     std::cout << std::endl;
                 }
             }
+
+            for (auto& tweet : candidate_tweets) {
+                std::cout << tweet.GetTweetID() << " ";
+            }
+            std::cout << std::endl;
         }
     }
 }

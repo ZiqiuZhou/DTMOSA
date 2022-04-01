@@ -253,8 +253,8 @@ namespace OpenStreetMapAnnotation::SpatialDataIntegration {
         return final_candidates;
     }
 
-    std::vector<Tweet> GeoIntegrationHandler::FindCandidateTweetsForPoint(OpenStreetMap& osm_line_object) {
-        auto& coordinates = osm_line_object.GetCoordinates();
+    std::vector<Tweet> GeoIntegrationHandler::FindCandidateTweetsForPoint(OpenStreetMap& osm_point_object) {
+        auto& coordinates = osm_point_object.GetCoordinates();
         std::pair<double, double>& coordinate = coordinates[0];
         int grid_index = space.GetCellIndex(coordinate.first, coordinate.second);
 
