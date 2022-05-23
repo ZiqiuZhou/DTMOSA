@@ -260,7 +260,7 @@ if __name__ == "__main__":
     # geographic area from which you will stream tweets. The first two define the southwest
     # corner of the box and the second two define the northeast corner of the box.
     bounding_box = ["-95.565128", "29.544661", "-95.185277", "29.883392"]  # Houston City
-    bearer_token = "AAAAAAAAAAAAAAAAAAAAAEsVSAEAAAAA2Vp0os7em9%2FTe8tUCBWbuP8kRmA%3D82PgW6sI4lZqRX4XApzcDBwmmGwvNy8o43h7SnlVqv16fqxX8w"
+    bearer_token = "your bearer token"
     start_time = "2017-08-20T00:00:01.000Z"
     end_time = "2017-09-10T23:59:59.000Z"
 
