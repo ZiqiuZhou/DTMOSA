@@ -8,3 +8,6 @@ The parameters need to be set in the main function:
 -  output_file directory (in absolute path): conatins all tweets.
 -  file_location_predict: subset of tweets that is not geo-tagged but probably contain geo-information, thus need to be predicted.
 -  bounding_box: a "[lon1, lat1, lon2, lat2]" list represents the geo-boundary. 
+-  start_time & end_time: the time period
+
+In the crawling processing, the function "crawl_data" generates the request url strings to visist the Twitter streaming API. You can refer https://dev.twitter.com/streaming/overview to design your own request string.
