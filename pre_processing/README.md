@@ -27,3 +27,16 @@ This routine aims at collecting OpenStreetMap data meeting your demands. Here we
 - to pick buildings: "building=* and geometry:polygon"
 - to pick roads: "highway=* and type:way"
 - to pick points: "geometry:point"
+Also just type "python3 OSM_crawling.py" to run the code, and the output is a file containing the collected OSM objects with .json format.
+
+Some parameters to be set:
+- path to store the output file
+- the request URL: 'https://api.ohsome.org/v1/contributions/latest/geometry'
+- data: {"bboxes": "lon1, lat1, lon1, lat1", "time": "yyyy-mm-dd (start time),yyyy-mm-dd (end time)", "showMetadata": "yes", "properties": "metadata,tags"}
+
+The output file includes all OSM objects with .json format. For each object, we contain the following meta-data:
+- osm_id
+- timestamp
+- type
+- coordinates
+- tags
