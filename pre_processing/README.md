@@ -21,3 +21,9 @@ The output file includes all tweets with .json format. For each tweet, we contai
 - longitude & latitude
 - context
 - word bag (set of words from tweet context)
+
+#### 2. OSM_crawling.py
+This routine aims at collecting OpenStreetMap data meeting your demands. Here we deals with three types of OSM objects - buildings, roads and points:
+- to pick buildings: "building=* and geometry:polygon"
+- to pick roads: "highway=* and type:way"
+- to pick points: "geometry:point"
