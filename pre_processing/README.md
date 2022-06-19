@@ -13,3 +13,11 @@ The parameters need to be set in the main function:
 In the crawling processing, the function "crawl_data" generates the request url strings to visist the Twitter streaming API. You can refer https://dev.twitter.com/streaming/overview to design your own request string.
 
 "tweet_crawling.py" also deals with some pre-processing steps in NLP, such as: lower_case, url / numbers /stop words / multiple whitespace removal, tokenization and lemmatization.
+
+The output file includes all tweets with .json format. For each tweet, we contain the following meta-data:
+- tweet_id
+- user_id
+- time
+- longitude & latitude
+- context
+- word bag (set of words from tweet context)
